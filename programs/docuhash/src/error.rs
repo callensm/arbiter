@@ -8,6 +8,9 @@ pub enum ErrorCode {
     #[msg("The participants list for the new document was empty.")]
     EmptyDocumentParticipants,
 
+    #[msg("The title provided for the new document was empty.")]
+    EmptyDocumentTitle,
+
     #[msg("The document cannot be finalized until all participants have signed.")]
     FinalizingWithoutAllSignatures,
 

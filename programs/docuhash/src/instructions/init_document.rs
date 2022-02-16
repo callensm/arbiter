@@ -5,7 +5,7 @@ use crate::error::ErrorCode;
 use crate::state::Document;
 
 #[derive(Accounts)]
-#[instruction(participants: Vec<Pubkey>)]
+#[instruction(title: String, participants: Vec<Pubkey>)]
 pub struct InitDocument<'info> {
     /// The system account that is signing the transaction and
     /// paying for the initialization of the `document` account.
@@ -19,11 +19,11 @@ pub struct InitDocument<'info> {
         payer = creator,
         seeds = [
             b"document",
-            // TODO: add additional seed
+            Document::title_seed(&title),
             creator.key().as_ref(),
         ],
         bump,
-        space = Document::space(participants.len()),
+        space = Document::space(title.len(), participants.len()),
     )]
     pub document: Account<'info, Document>,
 
@@ -53,7 +53,13 @@ pub struct InitDocument<'info> {
 
 impl<'info> InitDocument<'info> {
     /// Instruction prevalidation for `init_document`.
-    pub fn prevalidate(_ctx: &Context<Self>, participants: &Vec<Pubkey>) -> ProgramResult {
+    pub fn prevalidate(
+        _ctx: &Context<Self>,
+        title: &str,
+        participants: &Vec<Pubkey>,
+    ) -> ProgramResult {
+        require!(!title.is_empty(), ErrorCode::EmptyDocumentTitle);
+
         require!(
             !participants.is_empty(),
             ErrorCode::EmptyDocumentParticipants,
@@ -78,16 +84,32 @@ fn is_unique(v: &Vec<Pubkey>) -> bool {
 /// Instruction entrypoint handler for `init_document`.
 pub fn init_document_handler(
     ctx: Context<InitDocument>,
+    title: String,
     participants: Vec<Pubkey>,
 ) -> ProgramResult {
-    *ctx.accounts.document = Document {
-        creator: ctx.accounts.creator.key(),
-        mint: ctx.accounts.mint.key(),
-        participants: participants.clone(),
-        timestamps: vec![0; participants.len()],
+    let Context {
+        accounts:
+            InitDocument {
+                creator,
+                document,
+                mint,
+                ..
+            },
+        bumps,
+        ..
+    } = ctx;
+
+    let num_participants = participants.len();
+
+    **document = Document {
+        creator: creator.key(),
+        mint: mint.key(),
+        title,
+        participants,
+        timestamps: vec![0; num_participants],
         finalization_timestamp: 0,
-        mint_bump: *ctx.bumps.get("mint").unwrap(),
-        bump: [*ctx.bumps.get("document").unwrap()],
+        mint_bump: *bumps.get("mint").unwrap(),
+        bump: [*bumps.get("document").unwrap()],
     };
 
     Ok(())

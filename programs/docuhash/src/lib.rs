@@ -22,8 +22,12 @@ pub mod docuhash {
         instructions::finalize_handler(ctx)
     }
 
-    #[access_control(InitDocument::prevalidate(&ctx, &participants))]
-    pub fn init_document(ctx: Context<InitDocument>, participants: Vec<Pubkey>) -> ProgramResult {
-        instructions::init_document_handler(ctx, participants)
+    #[access_control(InitDocument::prevalidate(&ctx, &title, &participants))]
+    pub fn init_document(
+        ctx: Context<InitDocument>,
+        title: String,
+        participants: Vec<Pubkey>,
+    ) -> ProgramResult {
+        instructions::init_document_handler(ctx, title, participants)
     }
 }

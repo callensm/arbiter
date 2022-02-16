@@ -10,6 +10,9 @@ pub struct Document {
     /// The public key of the NFT mint created for the document.
     pub mint: Pubkey,
 
+    /// The immutable title of the document (cannot be changed after creation).
+    pub title: String,
+
     /// The public keys that are required to sign and send approval transactions.
     pub participants: Vec<Pubkey>,
 
@@ -29,9 +32,18 @@ pub struct Document {
 impl Document {
     /// Returns the byte size of the `Document` struct given the number of
     /// participants required to submit signed approval transactions.
-    pub fn space(size: usize) -> usize {
-        let safe_size = if size == 0 { 1 } else { size };
-        8 + 32 * 2 + (4 + 32 * safe_size) + (4 + 8 * safe_size) + 8 + 1 + 1
+    pub fn space(title_size: usize, part_size: usize) -> usize {
+        8 + 32 * 2 + (4 + title_size) + (4 + 32 * part_size) + (4 + 8 * part_size) + 8 + 1 + 1
+    }
+
+    /// Truncate the document title name into a seed usable byte array.
+    pub fn title_seed(title: &str) -> &[u8] {
+        let b = title.as_bytes();
+        if b.len() > 32 {
+            &b[0..32]
+        } else {
+            b
+        }
     }
 
     /// Whether the document has all signatures required and has been
@@ -41,8 +53,13 @@ impl Document {
     }
 
     /// The program account signer seeds for programmatic authority.
-    pub fn signer_seeds(&self) -> [&[u8]; 3] {
-        [b"document".as_ref(), self.creator.as_ref(), &self.bump]
+    pub fn signer_seeds(&self) -> [&[u8]; 4] {
+        [
+            b"document".as_ref(),
+            self.creator.as_ref(),
+            Self::title_seed(&self.title),
+            &self.bump,
+        ]
     }
 
     /// Try to set the timestamp of the document finalization in the account data.

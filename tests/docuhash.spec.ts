@@ -24,6 +24,7 @@ describe('docuhash', async () => {
   const creator = web3.Keypair.generate()
   const participants = [...Array(4)].map(() => web3.Keypair.generate())
 
+  const title = 'My Test Document'
   let document: web3.PublicKey
   let mint: web3.PublicKey
 
@@ -36,7 +37,11 @@ describe('docuhash', async () => {
     describe('invoke `init_document` to create a new legal document', () => {
       before(async () => {
         ;[document] = await web3.PublicKey.findProgramAddress(
-          [Buffer.from('document'), creator.publicKey.toBytes()],
+          [
+            Buffer.from('document'),
+            Buffer.from(title.substring(0, 32)),
+            creator.publicKey.toBytes()
+          ],
           program.programId
         )
         ;[mint] = await web3.PublicKey.findProgramAddress(
@@ -46,9 +51,39 @@ describe('docuhash', async () => {
       })
 
       describe('unless the instruction fails because', () => {
+        it('the document title is empty', async () => {
+          const [badDoc] = await web3.PublicKey.findProgramAddress(
+            [Buffer.from('document'), Buffer.from(''), creator.publicKey.toBytes()],
+            program.programId
+          )
+
+          const [badMint] = await web3.PublicKey.findProgramAddress(
+            [Buffer.from('mint'), badDoc.toBytes()],
+            program.programId
+          )
+
+          assert.isRejected(
+            program.simulate.initDocument(
+              '',
+              participants.map(p => p.publicKey),
+              {
+                accounts: {
+                  creator: creator.publicKey,
+                  document: badDoc,
+                  mint: badMint,
+                  tokenProgram: TOKEN_PROGRAM_ID,
+                  systemProgram: web3.SystemProgram.programId,
+                  rent: web3.SYSVAR_RENT_PUBKEY
+                },
+                signers: [creator]
+              }
+            )
+          )
+        })
+
         it('the participants public key array is empty', () => {
           assert.isRejected(
-            program.simulate.initDocument([], {
+            program.simulate.initDocument(title, [], {
               accounts: {
                 creator: creator.publicKey,
                 document,
@@ -65,6 +100,7 @@ describe('docuhash', async () => {
         it('there are duplicate participant public keys', () => {
           assert.isRejected(
             program.simulate.initDocument(
+              title,
               [...participants.map(p => p.publicKey), participants[0].publicKey],
               {
                 accounts: {
@@ -87,6 +123,7 @@ describe('docuhash', async () => {
 
         before(async () => {
           await program.rpc.initDocument(
+            title,
             participants.map(p => p.publicKey),
             {
               accounts: {

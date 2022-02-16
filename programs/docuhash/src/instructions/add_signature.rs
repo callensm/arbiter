@@ -16,6 +16,7 @@ pub struct AddSignature<'info> {
         mut,
         seeds = [
             b"document",
+            Document::title_seed(&document.title),
             document.creator.as_ref(),
         ],
         bump = document.bump[0],

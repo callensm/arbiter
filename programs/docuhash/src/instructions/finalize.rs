@@ -16,6 +16,7 @@ pub struct Finalize<'info> {
         mut,
         seeds = [
             b"document",
+            Document::title_seed(&document.title),
             document.creator.as_ref(),
         ],
         bump = document.bump[0],
@@ -64,16 +65,23 @@ impl<'info> Finalize<'info> {
 
 /// Instruction entrypoint handler for `finalize`.
 pub fn finalize_handler(ctx: Context<Finalize>) -> ProgramResult {
-    let document = &mut ctx.accounts.document;
+    let Finalize {
+        document,
+        mint,
+        nft_token_account,
+        token_program,
+        ..
+    } = ctx.accounts;
+
     document.try_finalize()?;
 
     mint_to(
         CpiContext::new_with_signer(
-            ctx.accounts.token_program.to_account_info(),
+            token_program.to_account_info(),
             MintTo {
                 authority: document.to_account_info(),
-                mint: ctx.accounts.mint.to_account_info(),
-                to: ctx.accounts.nft_token_account.to_account_info(),
+                mint: mint.to_account_info(),
+                to: nft_token_account.to_account_info(),
             },
             &[&document.signer_seeds()],
         ),
@@ -82,9 +90,9 @@ pub fn finalize_handler(ctx: Context<Finalize>) -> ProgramResult {
 
     set_authority(
         CpiContext::new_with_signer(
-            ctx.accounts.token_program.to_account_info(),
+            token_program.to_account_info(),
             SetAuthority {
-                account_or_mint: ctx.accounts.mint.to_account_info(),
+                account_or_mint: mint.to_account_info(),
                 current_authority: document.to_account_info(),
             },
             &[&document.signer_seeds()],
