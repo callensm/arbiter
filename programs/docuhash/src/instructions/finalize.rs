@@ -1,0 +1,97 @@
+use anchor_lang::prelude::*;
+use anchor_lang::solana_program::program_option::COption;
+use anchor_spl::associated_token::AssociatedToken;
+use anchor_spl::token::{mint_to, set_authority, Mint, MintTo, SetAuthority, Token, TokenAccount};
+use spl_token::instruction::AuthorityType;
+
+use crate::error::ErrorCode;
+use crate::state::Document;
+
+#[derive(Accounts)]
+pub struct Finalize<'info> {
+    #[account(mut)]
+    pub creator: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [
+            b"document",
+            document.creator.as_ref(),
+        ],
+        bump = document.bump[0],
+        has_one = creator,
+        has_one = mint,
+        constraint = !document.is_finalized() @ ErrorCode::DocumentIsAlreadyFinalized,
+        constraint = document.timestamps.iter().all(|&t| t > 0) @ ErrorCode::FinalizingWithoutAllSignatures,
+    )]
+    pub document: Account<'info, Document>,
+
+    #[account(
+        mut,
+        seeds = [
+            b"mint",
+            document.key().as_ref(),
+        ],
+        bump = document.mint_bump,
+        constraint = mint.decimals == 0 @ ErrorCode::MintDecimalNotZero,
+        constraint = mint.mint_authority == COption::Some(document.key()) @ ErrorCode::MintAuthorityMisMatch,
+    )]
+    pub mint: Account<'info, Mint>,
+
+    #[account(
+        init,
+        payer = creator,
+        associated_token::mint = mint,
+        associated_token::authority = creator,
+    )]
+    pub nft_token_account: Account<'info, TokenAccount>,
+
+    pub associated_token_program: Program<'info, AssociatedToken>,
+
+    pub token_program: Program<'info, Token>,
+
+    pub system_program: Program<'info, System>,
+
+    pub rent: Sysvar<'info, Rent>,
+}
+
+impl<'info> Finalize<'info> {
+    /// Instruction prevalidation for `finalize`.
+    pub fn prevalidate(_ctx: &Context<Self>) -> ProgramResult {
+        Ok(())
+    }
+}
+
+/// Instruction entrypoint handler for `finalize`.
+pub fn finalize_handler(ctx: Context<Finalize>) -> ProgramResult {
+    let document = &mut ctx.accounts.document;
+    document.try_finalize()?;
+
+    mint_to(
+        CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            MintTo {
+                authority: document.to_account_info(),
+                mint: ctx.accounts.mint.to_account_info(),
+                to: ctx.accounts.nft_token_account.to_account_info(),
+            },
+            &[&document.signer_seeds()],
+        ),
+        1,
+    )?;
+
+    set_authority(
+        CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            SetAuthority {
+                account_or_mint: ctx.accounts.mint.to_account_info(),
+                current_authority: document.to_account_info(),
+            },
+            &[&document.signer_seeds()],
+        ),
+        AuthorityType::MintTokens,
+        None,
+    )?;
+
+    Ok(())
+}
