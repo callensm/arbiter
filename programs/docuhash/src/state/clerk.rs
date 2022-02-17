@@ -11,10 +11,6 @@ pub struct Clerk {
     /// The vector of `Document` public keys owned by the account.
     pub documents: Vec<Pubkey>,
 
-    /// The maximum number of `Document` public keys that
-    /// can be stored in the vector.
-    pub limit: u8,
-
     /// The program account bump nonce.
     pub bump: [u8; 1],
 }
@@ -31,10 +27,10 @@ impl Clerk {
     pub fn is_full(&self) -> bool {
         self.documents
             .iter()
-            .filter(|&d| *d != Pubkey::default())
+            .filter(|&d| *d == Pubkey::default())
             .collect::<Vec<&Pubkey>>()
             .len()
-            >= self.limit as usize
+            == 0
     }
 
     /// Returns the list of program account signer seeds for the account.

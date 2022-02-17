@@ -14,31 +14,78 @@ import { Docuhash } from '../target/types/docuhash'
 
 chaiUse(chaiAsPromised)
 
-const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-
 describe('docuhash', async () => {
   setProvider(Provider.env())
 
   const program = workspace.Docuhash as Program<Docuhash>
 
-  const creator = web3.Keypair.generate()
+  const authority = (program.provider.wallet as any).payer as web3.Keypair
   const participants = [...Array(4)].map(() => web3.Keypair.generate())
 
   const title = 'My Test Document'
+  let clerk: web3.PublicKey
   let document: web3.PublicKey
   let mint: web3.PublicKey
   let nftTokenAccount: web3.PublicKey
 
-  before(async () => {
-    await program.provider.connection.requestAirdrop(creator.publicKey, 10 * web3.LAMPORTS_PER_SOL)
-    await wait(1000)
-  })
-
   describe('users of the program should be able to', () => {
+    describe('invoke `init_clerk` to create a Clerk program account for themselves', () => {
+      before(async () => {
+        ;[clerk] = await web3.PublicKey.findProgramAddress(
+          [Buffer.from('clerk'), authority.publicKey.toBytes()],
+          program.programId
+        )
+      })
+
+      describe('except when it should fail because', () => {
+        it('the document limit provided is zero', () => {
+          assert.isRejected(
+            program.simulate.initClerk(0, {
+              accounts: {
+                authority: authority.publicKey,
+                payer: authority.publicKey,
+                clerk,
+                systemProgram: web3.SystemProgram.programId
+              },
+              signers: [authority]
+            })
+          )
+        })
+      })
+
+      describe('but when the clerk is successfully created', () => {
+        let clerkData: ProgramAccount<any>
+
+        before(async () => {
+          await program.rpc.initClerk(1, {
+            accounts: {
+              authority: authority.publicKey,
+              payer: authority.publicKey,
+              clerk,
+              systemProgram: web3.SystemProgram.programId
+            },
+            signers: [authority]
+          })
+        })
+
+        it('the clerk is initialized', async () => {
+          const clerks = await program.account.clerk.all()
+          assert.lengthOf(clerks, 1)
+
+          clerkData = clerks[0]
+          assert.isTrue(clerkData.publicKey.equals(clerk))
+        })
+
+        it('the document list is set to the proper size limit', () => {
+          assert.lengthOf(clerkData.account.documents, 1)
+        })
+      })
+    })
+
     describe('invoke `init_document` to create a new legal document', () => {
       before(async () => {
         ;[document] = await web3.PublicKey.findProgramAddress(
-          [Buffer.from('document'), creator.publicKey.toBytes(), Buffer.from(title.slice(0, 32))],
+          [Buffer.from('document'), authority.publicKey.toBytes(), Buffer.from(title.slice(0, 32))],
           program.programId
         )
       })
@@ -46,7 +93,7 @@ describe('docuhash', async () => {
       describe('unless the instruction fails because', () => {
         it('the document title is empty', async () => {
           const [badDoc] = await web3.PublicKey.findProgramAddress(
-            [Buffer.from('document'), creator.publicKey.toBytes(), Buffer.from('')],
+            [Buffer.from('document'), authority.publicKey.toBytes(), Buffer.from('')],
             program.programId
           )
 
@@ -56,12 +103,13 @@ describe('docuhash', async () => {
               participants.map(p => p.publicKey),
               {
                 accounts: {
-                  creator: creator.publicKey,
-                  payer: creator.publicKey,
+                  authority: authority.publicKey,
+                  payer: authority.publicKey,
+                  clerk,
                   document: badDoc,
                   systemProgram: web3.SystemProgram.programId
                 },
-                signers: [creator]
+                signers: [authority]
               }
             )
           )
@@ -71,12 +119,13 @@ describe('docuhash', async () => {
           assert.isRejected(
             program.simulate.initDocument(title, [], {
               accounts: {
-                creator: creator.publicKey,
-                payer: creator.publicKey,
+                authority: authority.publicKey,
+                payer: authority.publicKey,
+                clerk,
                 document,
                 systemProgram: web3.SystemProgram.programId
               },
-              signers: [creator]
+              signers: [authority]
             })
           )
         })
@@ -88,12 +137,13 @@ describe('docuhash', async () => {
               [...participants.map(p => p.publicKey), participants[0].publicKey],
               {
                 accounts: {
-                  creator: creator.publicKey,
-                  payer: creator.publicKey,
+                  authority: authority.publicKey,
+                  payer: authority.publicKey,
+                  clerk,
                   document,
                   systemProgram: web3.SystemProgram.programId
                 },
-                signers: [creator]
+                signers: [authority]
               }
             )
           )
@@ -109,12 +159,13 @@ describe('docuhash', async () => {
             participants.map(p => p.publicKey),
             {
               accounts: {
-                creator: creator.publicKey,
-                payer: creator.publicKey,
+                authority: authority.publicKey,
+                payer: authority.publicKey,
+                clerk,
                 document,
                 systemProgram: web3.SystemProgram.programId
               },
-              signers: [creator]
+              signers: [authority]
             }
           )
         })
@@ -129,7 +180,7 @@ describe('docuhash', async () => {
 
         describe('with its account data properly set', () => {
           it('public key references', () => {
-            assert.isTrue(docData.account.creator.equals(creator.publicKey))
+            assert.isTrue(docData.account.authority.equals(authority.publicKey))
             assert.isTrue(docData.account.mint.equals(web3.PublicKey.default))
           })
 
@@ -218,7 +269,7 @@ describe('docuhash', async () => {
           ASSOCIATED_TOKEN_PROGRAM_ID,
           TOKEN_PROGRAM_ID,
           mint,
-          creator.publicKey
+          authority.publicKey
         )
       })
 
@@ -227,8 +278,9 @@ describe('docuhash', async () => {
           assert.isRejected(
             program.simulate.finalize({
               accounts: {
-                creator: creator.publicKey,
-                payer: creator.publicKey,
+                authority: authority.publicKey,
+                payer: authority.publicKey,
+                clerk,
                 document,
                 mint,
                 nftTokenAccount,
@@ -237,7 +289,7 @@ describe('docuhash', async () => {
                 systemProgram: web3.SystemProgram.programId,
                 rent: web3.SYSVAR_RENT_PUBKEY
               },
-              signers: [creator]
+              signers: [authority]
             })
           )
         })
@@ -263,8 +315,9 @@ describe('docuhash', async () => {
         before(async () => {
           await program.rpc.finalize({
             accounts: {
-              creator: creator.publicKey,
-              payer: creator.publicKey,
+              authority: authority.publicKey,
+              payer: authority.publicKey,
+              clerk,
               document,
               mint,
               nftTokenAccount,
@@ -273,7 +326,7 @@ describe('docuhash', async () => {
               systemProgram: web3.SystemProgram.programId,
               rent: web3.SYSVAR_RENT_PUBKEY
             },
-            signers: [creator]
+            signers: [authority]
           })
 
           docData = await program.account.document.fetch(document)
@@ -290,7 +343,7 @@ describe('docuhash', async () => {
 
         it('the document creator will have an NFT token account for the document mint', async () => {
           const accs = await program.provider.connection.getTokenAccountsByOwner(
-            creator.publicKey,
+            authority.publicKey,
             {
               mint
             }
