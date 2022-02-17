@@ -41,6 +41,6 @@ pub fn add_signature_handler(ctx: Context<AddSignature>) -> ProgramResult {
         document,
     } = ctx.accounts;
 
-    document.try_sign(&participant)?;
+    document.try_sign(participant)?;
     Ok(())
 }
