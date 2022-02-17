@@ -10,6 +10,9 @@ pub struct Document {
     /// The public key of the NFT mint created for the document.
     pub mint: Pubkey,
 
+    /// The public key of the NFT token account for the document.
+    pub nft: Pubkey,
+
     /// The immutable title of the document (cannot be changed after creation).
     pub title: String,
 
@@ -33,7 +36,7 @@ impl Document {
     /// Returns the byte size of the `Document` struct given the number of
     /// participants required to submit signed approval transactions.
     pub fn space(title_size: usize, part_size: usize) -> usize {
-        8 + 32 * 2 + (4 + title_size) + (4 + 32 * part_size) + (4 + 8 * part_size) + 8 + 1 + 1
+        8 + 32 * 3 + (4 + title_size) + (4 + 32 * part_size) + (4 + 8 * part_size) + 8 + 1 + 1
     }
 
     /// Convert a full document title string into a usable address seed.

@@ -7,15 +7,18 @@ use crate::state::Document;
 #[instruction(title: String, participants: Vec<Pubkey>)]
 pub struct InitDocument<'info> {
     /// The system account that is signing the transaction and
-    /// paying for the initialization of the `document` account.
-    #[account(mut)]
+    /// will be set as the `document` owner.
     pub creator: Signer<'info>,
+
+    /// The wallet paying for the initialization of the `document` account.
+    #[account(mut)]
+    pub payer: SystemAccount<'info>,
 
     /// The `Document` program account that is being initialized
     /// for a new multi-signature requirement.
     #[account(
         init,
-        payer = creator,
+        payer = payer,
         seeds = [
             b"document",
             creator.key().as_ref(),
@@ -79,6 +82,7 @@ pub fn init_document_handler(
     **document = Document {
         creator: creator.key(),
         mint: Pubkey::default(),
+        nft: Pubkey::default(),
         title,
         participants,
         timestamps: vec![0; num_participants],

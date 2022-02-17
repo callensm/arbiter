@@ -8,8 +8,10 @@ use crate::state::Document;
 
 #[derive(Accounts)]
 pub struct Finalize<'info> {
-    #[account(mut)]
     pub creator: Signer<'info>,
+
+    #[account(mut)]
+    pub payer: SystemAccount<'info>,
 
     #[account(
         mut,
@@ -27,7 +29,7 @@ pub struct Finalize<'info> {
 
     #[account(
         init,
-        payer = creator,
+        payer = payer,
         seeds = [
             b"mint",
             document.key().as_ref(),
@@ -40,7 +42,7 @@ pub struct Finalize<'info> {
 
     #[account(
         init,
-        payer = creator,
+        payer = payer,
         associated_token::mint = mint,
         associated_token::authority = creator,
     )]
@@ -78,6 +80,7 @@ pub fn finalize_handler(ctx: Context<Finalize>) -> ProgramResult {
     } = ctx;
 
     document.mint = mint.key();
+    document.nft = nft_token_account.key();
     document.mint_bump = *bumps.get("mint").unwrap();
 
     document.try_finalize()?;

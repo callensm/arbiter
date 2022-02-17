@@ -57,6 +57,7 @@ describe('docuhash', async () => {
               {
                 accounts: {
                   creator: creator.publicKey,
+                  payer: creator.publicKey,
                   document: badDoc,
                   systemProgram: web3.SystemProgram.programId
                 },
@@ -71,6 +72,7 @@ describe('docuhash', async () => {
             program.simulate.initDocument(title, [], {
               accounts: {
                 creator: creator.publicKey,
+                payer: creator.publicKey,
                 document,
                 systemProgram: web3.SystemProgram.programId
               },
@@ -87,6 +89,7 @@ describe('docuhash', async () => {
               {
                 accounts: {
                   creator: creator.publicKey,
+                  payer: creator.publicKey,
                   document,
                   systemProgram: web3.SystemProgram.programId
                 },
@@ -107,6 +110,7 @@ describe('docuhash', async () => {
             {
               accounts: {
                 creator: creator.publicKey,
+                payer: creator.publicKey,
                 document,
                 systemProgram: web3.SystemProgram.programId
               },
@@ -224,6 +228,7 @@ describe('docuhash', async () => {
             program.simulate.finalize({
               accounts: {
                 creator: creator.publicKey,
+                payer: creator.publicKey,
                 document,
                 mint,
                 nftTokenAccount,
@@ -259,6 +264,7 @@ describe('docuhash', async () => {
           await program.rpc.finalize({
             accounts: {
               creator: creator.publicKey,
+              payer: creator.publicKey,
               document,
               mint,
               nftTokenAccount,
@@ -273,7 +279,10 @@ describe('docuhash', async () => {
           docData = await program.account.document.fetch(document)
         })
 
-        // TODO: check mint public key reference in document data
+        it('the mint and NFT token account public keys are set in the account data', () => {
+          assert.isTrue(docData.mint.equals(mint))
+          assert.isTrue(docData.nft.equals(nftTokenAccount))
+        })
 
         it('it will have a non-zero finalization timestamp in account data', () => {
           assert.notEqual(docData.finalizationTimestamp.toNumber(), 0)
