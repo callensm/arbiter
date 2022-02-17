@@ -38,31 +38,13 @@ describe('docuhash', async () => {
     describe('invoke `init_document` to create a new legal document', () => {
       before(async () => {
         ;[document] = await web3.PublicKey.findProgramAddress(
-          [
-            Buffer.from('document'),
-            creator.publicKey.toBytes(),
-            Buffer.from(title.substring(0, 32))
-          ],
-          program.programId
-        )
-        ;[mint] = await web3.PublicKey.findProgramAddress(
-          [Buffer.from('mint'), document.toBytes()],
+          [Buffer.from('document'), creator.publicKey.toBytes()],
           program.programId
         )
       })
 
       describe('unless the instruction fails because', () => {
         it('the document title is empty', async () => {
-          const [badDoc] = await web3.PublicKey.findProgramAddress(
-            [Buffer.from('document'), creator.publicKey.toBytes(), Buffer.from('')],
-            program.programId
-          )
-
-          const [badMint] = await web3.PublicKey.findProgramAddress(
-            [Buffer.from('mint'), badDoc.toBytes()],
-            program.programId
-          )
-
           assert.isRejected(
             program.simulate.initDocument(
               '',
@@ -70,11 +52,8 @@ describe('docuhash', async () => {
               {
                 accounts: {
                   creator: creator.publicKey,
-                  document: badDoc,
-                  mint: badMint,
-                  tokenProgram: TOKEN_PROGRAM_ID,
-                  systemProgram: web3.SystemProgram.programId,
-                  rent: web3.SYSVAR_RENT_PUBKEY
+                  document,
+                  systemProgram: web3.SystemProgram.programId
                 },
                 signers: [creator]
               }
@@ -88,10 +67,7 @@ describe('docuhash', async () => {
               accounts: {
                 creator: creator.publicKey,
                 document,
-                mint,
-                tokenProgram: TOKEN_PROGRAM_ID,
-                systemProgram: web3.SystemProgram.programId,
-                rent: web3.SYSVAR_RENT_PUBKEY
+                systemProgram: web3.SystemProgram.programId
               },
               signers: [creator]
             })
@@ -107,10 +83,7 @@ describe('docuhash', async () => {
                 accounts: {
                   creator: creator.publicKey,
                   document,
-                  mint,
-                  tokenProgram: TOKEN_PROGRAM_ID,
-                  systemProgram: web3.SystemProgram.programId,
-                  rent: web3.SYSVAR_RENT_PUBKEY
+                  systemProgram: web3.SystemProgram.programId
                 },
                 signers: [creator]
               }
@@ -130,10 +103,7 @@ describe('docuhash', async () => {
               accounts: {
                 creator: creator.publicKey,
                 document,
-                mint,
-                tokenProgram: TOKEN_PROGRAM_ID,
-                systemProgram: web3.SystemProgram.programId,
-                rent: web3.SYSVAR_RENT_PUBKEY
+                systemProgram: web3.SystemProgram.programId
               },
               signers: [creator]
             }
@@ -151,7 +121,7 @@ describe('docuhash', async () => {
         describe('with its account data properly set', () => {
           it('public key references', () => {
             assert.isTrue(docData.account.creator.equals(creator.publicKey))
-            assert.isTrue(docData.account.mint.equals(mint))
+            assert.isTrue(docData.account.mint.equals(web3.PublicKey.default))
           })
 
           it('participants and timestamp defaults', () => {
@@ -173,7 +143,7 @@ describe('docuhash', async () => {
 
           it('additional state data fields', () => {
             assert.equal(docData.account.finalizationTimestamp.toNumber(), 0)
-            assert.notEqual(docData.account.mintBump, 0)
+            assert.equal(docData.account.mintBump, 0)
           })
         })
       })
@@ -230,6 +200,11 @@ describe('docuhash', async () => {
 
     describe('the creator can invoke `finalize` to complete a document and mint the NFT', () => {
       before(async () => {
+        ;[mint] = await web3.PublicKey.findProgramAddress(
+          [Buffer.from('mint'), document.toBytes()],
+          program.programId
+        )
+
         nftTokenAccount = await Token.getAssociatedTokenAddress(
           ASSOCIATED_TOKEN_PROGRAM_ID,
           TOKEN_PROGRAM_ID,
@@ -292,6 +267,8 @@ describe('docuhash', async () => {
 
           docData = await program.account.document.fetch(document)
         })
+
+        // TODO: check mint public key reference in document data
 
         it('it will have a non-zero finalization timestamp in account data', () => {
           assert.notEqual(docData.finalizationTimestamp.toNumber(), 0)

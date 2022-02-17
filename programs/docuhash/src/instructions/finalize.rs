@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::program_option::COption;
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{mint_to, set_authority, Mint, MintTo, SetAuthority, Token, TokenAccount};
 use spl_token::instruction::AuthorityType;
@@ -17,25 +16,24 @@ pub struct Finalize<'info> {
         seeds = [
             b"document",
             document.creator.as_ref(),
-            Document::title_seed(&document.title),
         ],
         bump = document.bump[0],
         has_one = creator,
-        has_one = mint,
         constraint = !document.is_finalized() @ ErrorCode::DocumentIsAlreadyFinalized,
         constraint = document.has_all_signatures() @ ErrorCode::DocumentIsMissingSignatures,
     )]
     pub document: Account<'info, Document>,
 
     #[account(
-        mut,
+        init,
+        payer = creator,
         seeds = [
             b"mint",
             document.key().as_ref(),
         ],
-        bump = document.mint_bump,
-        constraint = mint.decimals == 0 @ ErrorCode::MintDecimalNotZero,
-        constraint = mint.mint_authority == COption::Some(document.key()) @ ErrorCode::MintAuthorityMisMatch,
+        bump,
+        mint::decimals = 0,
+        mint::authority = document,
     )]
     pub mint: Account<'info, Mint>,
 
@@ -65,13 +63,21 @@ impl<'info> Finalize<'info> {
 
 /// Instruction entrypoint handler for `finalize`.
 pub fn finalize_handler(ctx: Context<Finalize>) -> ProgramResult {
-    let Finalize {
-        document,
-        mint,
-        nft_token_account,
-        token_program,
+    let Context {
+        accounts:
+            Finalize {
+                document,
+                mint,
+                nft_token_account,
+                token_program,
+                ..
+            },
+        bumps,
         ..
-    } = ctx.accounts;
+    } = ctx;
+
+    document.mint = mint.key();
+    document.mint_bump = *bumps.get("mint").unwrap();
 
     document.try_finalize()?;
 
