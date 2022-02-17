@@ -4,24 +4,35 @@ use anchor_spl::token::{mint_to, set_authority, Mint, MintTo, SetAuthority, Toke
 use spl_token::instruction::AuthorityType;
 
 use crate::error::ErrorCode;
-use crate::state::Document;
+use crate::seeds;
+use crate::state::{Clerk, Document};
 
 #[derive(Accounts)]
 pub struct Finalize<'info> {
-    pub creator: Signer<'info>,
+    pub authority: Signer<'info>,
 
     #[account(mut)]
     pub payer: SystemAccount<'info>,
 
     #[account(
+        seeds = [
+            seeds::CLERK,
+            clerk.authority.as_ref(),
+        ],
+        bump = clerk.bump[0],
+        has_one = authority,
+    )]
+    pub clerk: Account<'info, Clerk>,
+
+    #[account(
         mut,
         seeds = [
-            b"document",
-            document.creator.as_ref(),
+            seeds::DOCUMENT,
+            document.authority.as_ref(),
             Document::title_seed(&document.title),
         ],
         bump = document.bump[0],
-        has_one = creator,
+        has_one = authority,
         constraint = !document.is_finalized() @ ErrorCode::DocumentIsAlreadyFinalized,
         constraint = document.has_all_signatures() @ ErrorCode::DocumentIsMissingSignatures,
     )]
@@ -31,7 +42,7 @@ pub struct Finalize<'info> {
         init,
         payer = payer,
         seeds = [
-            b"mint",
+            seeds::MINT,
             document.key().as_ref(),
         ],
         bump,
@@ -44,7 +55,7 @@ pub struct Finalize<'info> {
         init,
         payer = payer,
         associated_token::mint = mint,
-        associated_token::authority = creator,
+        associated_token::authority = authority,
     )]
     pub nft_token_account: Account<'info, TokenAccount>,
 

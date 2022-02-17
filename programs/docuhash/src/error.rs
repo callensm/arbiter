@@ -2,6 +2,12 @@ use anchor_lang::prelude::{error, thiserror};
 
 #[error]
 pub enum ErrorCode {
+    #[msg("The clerk account's list of documents has reached the current limit.")]
+    ClerkDocumentListIsFull,
+
+    #[msg("The provided document limit for the clerk was zero.")]
+    ClerkLimitIsZero,
+
     #[msg("The document submitted for updating has already been finalized with all required signatures.")]
     DocumentIsAlreadyFinalized,
 

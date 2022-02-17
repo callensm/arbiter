@@ -1,11 +1,12 @@
 use anchor_lang::prelude::*;
 
 use crate::error::ErrorCode;
+use crate::seeds;
 
 #[account]
 pub struct Document {
     /// The public key of the wallet that created the document.
-    pub creator: Pubkey,
+    pub authority: Pubkey,
 
     /// The public key of the NFT mint created for the document.
     pub mint: Pubkey,
@@ -36,7 +37,7 @@ impl Document {
     /// Returns the byte size of the `Document` struct given the number of
     /// participants required to submit signed approval transactions.
     pub fn space(title_size: usize, part_size: usize) -> usize {
-        8 + 32 * 3 + (4 + title_size) + (4 + 32 * part_size) + (4 + 8 * part_size) + 8 + 1 + 1
+        8 + 32 * 4 + (4 + title_size) + (4 + 32 * part_size) + (4 + 8 * part_size) + 8 + 1 + 1
     }
 
     /// Convert a full document title string into a usable address seed.
@@ -63,8 +64,8 @@ impl Document {
     /// The program account signer seeds for programmatic authority.
     pub fn signer_seeds(&self) -> [&[u8]; 4] {
         [
-            b"document",
-            self.creator.as_ref(),
+            seeds::DOCUMENT,
+            self.authority.as_ref(),
             Self::title_seed(&self.title),
             &self.bump,
         ]

@@ -1,18 +1,32 @@
 use anchor_lang::prelude::*;
 
 use crate::error::ErrorCode;
-use crate::state::Document;
+use crate::seeds;
+use crate::state::{Clerk, Document};
 
 #[derive(Accounts)]
 #[instruction(title: String, participants: Vec<Pubkey>)]
 pub struct InitDocument<'info> {
     /// The system account that is signing the transaction and
     /// will be set as the `document` owner.
-    pub creator: Signer<'info>,
+    pub authority: Signer<'info>,
 
     /// The wallet paying for the initialization of the `document` account.
     #[account(mut)]
     pub payer: SystemAccount<'info>,
+
+    /// The `Clerk` program account that the `document` will be assigned to.
+    #[account(
+        mut,
+        seeds = [
+            seeds::CLERK,
+            clerk.authority.as_ref(),
+        ],
+        bump = clerk.bump[0],
+        has_one = authority,
+        constraint = !clerk.is_full() @ ErrorCode::ClerkDocumentListIsFull,
+    )]
+    pub clerk: Account<'info, Clerk>,
 
     /// The `Document` program account that is being initialized
     /// for a new multi-signature requirement.
@@ -20,8 +34,8 @@ pub struct InitDocument<'info> {
         init,
         payer = payer,
         seeds = [
-            b"document",
-            creator.key().as_ref(),
+            seeds::DOCUMENT,
+            authority.key().as_ref(),
             Document::title_seed(&title),
         ],
         bump,
@@ -70,9 +84,13 @@ pub fn init_document_handler(
     participants: Vec<Pubkey>,
 ) -> ProgramResult {
     let Context {
-        accounts: InitDocument {
-            creator, document, ..
-        },
+        accounts:
+            InitDocument {
+                authority,
+                clerk,
+                document,
+                ..
+            },
         bumps,
         ..
     } = ctx;
@@ -80,7 +98,7 @@ pub fn init_document_handler(
     let num_participants = participants.len();
 
     **document = Document {
-        creator: creator.key(),
+        authority: authority.key(),
         mint: Pubkey::default(),
         nft: Pubkey::default(),
         title,
@@ -90,6 +108,8 @@ pub fn init_document_handler(
         mint_bump: u8::default(),
         bump: [*bumps.get("document").unwrap()],
     };
+
+    clerk.try_assign(document.key())?;
 
     Ok(())
 }

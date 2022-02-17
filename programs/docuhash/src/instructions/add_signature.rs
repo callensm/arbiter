@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 
 use crate::error::ErrorCode;
+use crate::seeds;
 use crate::state::Document;
 
 #[derive(Accounts)]
@@ -15,8 +16,8 @@ pub struct AddSignature<'info> {
     #[account(
         mut,
         seeds = [
-            b"document",
-            document.creator.as_ref(),
+            seeds::DOCUMENT,
+            document.authority.as_ref(),
             Document::title_seed(&document.title),
         ],
         bump = document.bump[0],
@@ -35,6 +36,11 @@ impl<'info> AddSignature<'info> {
 
 /// Instruction entrypoint handler for `add_signature`.
 pub fn add_signature_handler(ctx: Context<AddSignature>) -> ProgramResult {
-    ctx.accounts.document.try_sign(&ctx.accounts.participant)?;
+    let AddSignature {
+        participant,
+        document,
+    } = ctx.accounts;
+
+    document.try_sign(&participant)?;
     Ok(())
 }
