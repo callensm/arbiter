@@ -7,7 +7,7 @@ import {
   web3,
   workspace
 } from '@project-serum/anchor'
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
+import { ASSOCIATED_TOKEN_PROGRAM_ID, MintLayout, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { assert, use as chaiUse } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { Docuhash } from '../target/types/docuhash'
@@ -27,6 +27,7 @@ describe('docuhash', async () => {
   const title = 'My Test Document'
   let document: web3.PublicKey
   let mint: web3.PublicKey
+  let nftTokenAccount: web3.PublicKey
 
   before(async () => {
     await program.provider.connection.requestAirdrop(creator.publicKey, 10 * web3.LAMPORTS_PER_SOL)
@@ -39,8 +40,8 @@ describe('docuhash', async () => {
         ;[document] = await web3.PublicKey.findProgramAddress(
           [
             Buffer.from('document'),
-            Buffer.from(title.substring(0, 32)),
-            creator.publicKey.toBytes()
+            creator.publicKey.toBytes(),
+            Buffer.from(title.substring(0, 32))
           ],
           program.programId
         )
@@ -53,7 +54,7 @@ describe('docuhash', async () => {
       describe('unless the instruction fails because', () => {
         it('the document title is empty', async () => {
           const [badDoc] = await web3.PublicKey.findProgramAddress(
-            [Buffer.from('document'), Buffer.from(''), creator.publicKey.toBytes()],
+            [Buffer.from('document'), creator.publicKey.toBytes(), Buffer.from('')],
             program.programId
           )
 
@@ -227,9 +228,96 @@ describe('docuhash', async () => {
       })
     })
 
-    describe('invoke `finalize` to complete a document and mint the NFT', () => {
-      // TODO:
-      // TODO: add post failure checks for finalized
+    describe('the creator can invoke `finalize` to complete a document and mint the NFT', () => {
+      before(async () => {
+        nftTokenAccount = await Token.getAssociatedTokenAddress(
+          ASSOCIATED_TOKEN_PROGRAM_ID,
+          TOKEN_PROGRAM_ID,
+          mint,
+          creator.publicKey
+        )
+      })
+
+      describe('it will fail when', () => {
+        it('not all participants have signature timestamps on the document', () => {
+          assert.isRejected(
+            program.simulate.finalize({
+              accounts: {
+                creator: creator.publicKey,
+                document,
+                mint,
+                nftTokenAccount,
+                associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+                tokenProgram: TOKEN_PROGRAM_ID,
+                systemProgram: web3.SystemProgram.programId,
+                rent: web3.SYSVAR_RENT_PUBKEY
+              },
+              signers: [creator]
+            })
+          )
+        })
+
+        after(async () => {
+          await Promise.all(
+            [participants[0], participants[1], participants[3]].map(p =>
+              program.rpc.addSignature({
+                accounts: {
+                  participant: p.publicKey,
+                  document
+                },
+                signers: [p]
+              })
+            )
+          )
+        })
+      })
+
+      describe('but once the document is successfully finalized by the creator', () => {
+        let docData: any
+
+        before(async () => {
+          await program.rpc.finalize({
+            accounts: {
+              creator: creator.publicKey,
+              document,
+              mint,
+              nftTokenAccount,
+              associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+              tokenProgram: TOKEN_PROGRAM_ID,
+              systemProgram: web3.SystemProgram.programId,
+              rent: web3.SYSVAR_RENT_PUBKEY
+            },
+            signers: [creator]
+          })
+
+          docData = await program.account.document.fetch(document)
+        })
+
+        it('it will have a non-zero finalization timestamp in account data', () => {
+          assert.notEqual(docData.finalizationTimestamp.toNumber(), 0)
+        })
+
+        it('the document creator will have an NFT token account for the document mint', async () => {
+          const accs = await program.provider.connection.getTokenAccountsByOwner(
+            creator.publicKey,
+            {
+              mint
+            }
+          )
+
+          assert.lengthOf(accs.value, 1)
+          assert.isTrue(accs.value[0].pubkey.equals(nftTokenAccount))
+
+          const balance = await program.provider.connection.getTokenAccountBalance(nftTokenAccount)
+          assert.equal(balance.value.amount, '1')
+        })
+
+        it('the document mint will no longer have a mint authority', async () => {
+          const info = await program.provider.connection.getAccountInfo(mint)
+          const m = MintLayout.decode(info.data)
+          assert.equal(m.mintAuthorityOption, 0)
+        })
+      })
     })
   })
 })

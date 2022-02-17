@@ -46,6 +46,11 @@ impl Document {
         }
     }
 
+    /// Checks if all required participants have submitted signatures.
+    pub fn has_all_signatures(&self) -> bool {
+        self.timestamps.iter().all(|&t| t > 0)
+    }
+
     /// Whether the document has all signatures required and has been
     /// finalized by the creator.
     pub fn is_finalized(&self) -> bool {
@@ -55,7 +60,7 @@ impl Document {
     /// The program account signer seeds for programmatic authority.
     pub fn signer_seeds(&self) -> [&[u8]; 4] {
         [
-            b"document".as_ref(),
+            b"document",
             self.creator.as_ref(),
             Self::title_seed(&self.title),
             &self.bump,

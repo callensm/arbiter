@@ -16,14 +16,14 @@ pub struct Finalize<'info> {
         mut,
         seeds = [
             b"document",
-            Document::title_seed(&document.title),
             document.creator.as_ref(),
+            Document::title_seed(&document.title),
         ],
         bump = document.bump[0],
         has_one = creator,
         has_one = mint,
         constraint = !document.is_finalized() @ ErrorCode::DocumentIsAlreadyFinalized,
-        constraint = document.timestamps.iter().all(|&t| t > 0) @ ErrorCode::FinalizingWithoutAllSignatures,
+        constraint = document.has_all_signatures() @ ErrorCode::DocumentIsMissingSignatures,
     )]
     pub document: Account<'info, Document>,
 

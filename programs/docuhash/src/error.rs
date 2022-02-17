@@ -5,14 +5,14 @@ pub enum ErrorCode {
     #[msg("The document submitted for updating has already been finalized with all required signatures.")]
     DocumentIsAlreadyFinalized,
 
+    #[msg("The document does not have all participant signatuers.")]
+    DocumentIsMissingSignatures,
+
     #[msg("The participants list for the new document was empty.")]
     EmptyDocumentParticipants,
 
     #[msg("The title provided for the new document was empty.")]
     EmptyDocumentTitle,
-
-    #[msg("The document cannot be finalized until all participants have signed.")]
-    FinalizingWithoutAllSignatures,
 
     #[msg("The document token mint authority did not match the provided document.")]
     MintAuthorityMisMatch,
