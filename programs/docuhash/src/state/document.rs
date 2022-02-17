@@ -76,6 +76,6 @@ impl Document {
         self.participants
             .iter()
             .position(|&p| p == participant)
-            .ok_or(ErrorCode::ParticipantNotAssociated.into())
+            .ok_or_else(|| ErrorCode::ParticipantNotAssociated.into())
     }
 }

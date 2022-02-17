@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "fmt": "prettier --check .",
     "fmt:fix": "prettier --write ."
   },
   "dependencies": {

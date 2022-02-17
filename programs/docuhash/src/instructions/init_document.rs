@@ -34,7 +34,7 @@ impl<'info> InitDocument<'info> {
     pub fn prevalidate(
         _ctx: &Context<Self>,
         title: &str,
-        participants: &Vec<Pubkey>,
+        participants: &[Pubkey],
     ) -> ProgramResult {
         require!(!title.is_empty(), ErrorCode::EmptyDocumentTitle);
 
@@ -50,7 +50,7 @@ impl<'info> InitDocument<'info> {
 }
 
 /// Checks if the argued vector of public keys contains any duplicates.
-fn is_unique(v: &Vec<Pubkey>) -> bool {
+fn is_unique(v: &[Pubkey]) -> bool {
     for (i, p) in v.iter().enumerate() {
         if v.iter().skip(i + 1).any(|e| e == p) {
             return false;
