@@ -19,6 +19,7 @@ pub struct InitDocument<'info> {
         seeds = [
             b"document",
             creator.key().as_ref(),
+            Document::title_seed(&title),
         ],
         bump,
         space = Document::space(title.len(), participants.len()),

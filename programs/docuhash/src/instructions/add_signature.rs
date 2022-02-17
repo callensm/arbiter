@@ -17,6 +17,7 @@ pub struct AddSignature<'info> {
         seeds = [
             b"document",
             document.creator.as_ref(),
+            Document::title_seed(&document.title),
         ],
         bump = document.bump[0],
         constraint = !document.is_finalized() @ ErrorCode::DocumentIsAlreadyFinalized,

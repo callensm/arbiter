@@ -36,6 +36,16 @@ impl Document {
         8 + 32 * 2 + (4 + title_size) + (4 + 32 * part_size) + (4 + 8 * part_size) + 8 + 1 + 1
     }
 
+    /// Convert a full document title string into a usable address seed.
+    pub fn title_seed(title: &str) -> &[u8] {
+        let b = title.as_bytes();
+        if b.len() > 32 {
+            &b[..32]
+        } else {
+            b
+        }
+    }
+
     /// Checks if all required participants have submitted signatures.
     pub fn has_all_signatures(&self) -> bool {
         self.timestamps.iter().all(|&t| t > 0)
@@ -48,8 +58,13 @@ impl Document {
     }
 
     /// The program account signer seeds for programmatic authority.
-    pub fn signer_seeds(&self) -> [&[u8]; 3] {
-        [b"document", self.creator.as_ref(), &self.bump]
+    pub fn signer_seeds(&self) -> [&[u8]; 4] {
+        [
+            b"document",
+            self.creator.as_ref(),
+            Self::title_seed(&self.title),
+            &self.bump,
+        ]
     }
 
     /// Try to set the timestamp of the document finalization in the account data.

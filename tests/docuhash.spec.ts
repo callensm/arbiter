@@ -38,13 +38,18 @@ describe('docuhash', async () => {
     describe('invoke `init_document` to create a new legal document', () => {
       before(async () => {
         ;[document] = await web3.PublicKey.findProgramAddress(
-          [Buffer.from('document'), creator.publicKey.toBytes()],
+          [Buffer.from('document'), creator.publicKey.toBytes(), Buffer.from(title.slice(0, 32))],
           program.programId
         )
       })
 
       describe('unless the instruction fails because', () => {
         it('the document title is empty', async () => {
+          const [badDoc] = await web3.PublicKey.findProgramAddress(
+            [Buffer.from('document'), creator.publicKey.toBytes(), Buffer.from('')],
+            program.programId
+          )
+
           assert.isRejected(
             program.simulate.initDocument(
               '',
@@ -52,7 +57,7 @@ describe('docuhash', async () => {
               {
                 accounts: {
                   creator: creator.publicKey,
-                  document,
+                  document: badDoc,
                   systemProgram: web3.SystemProgram.programId
                 },
                 signers: [creator]

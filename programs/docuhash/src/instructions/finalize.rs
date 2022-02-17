@@ -16,6 +16,7 @@ pub struct Finalize<'info> {
         seeds = [
             b"document",
             document.creator.as_ref(),
+            Document::title_seed(&document.title),
         ],
         bump = document.bump[0],
         has_one = creator,
