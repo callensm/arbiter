@@ -25,7 +25,7 @@ impl Clerk {
     /// Whether the documents public key vector is storing the maximum
     /// number of non-default keys allowed.
     pub fn is_full(&self) -> bool {
-        self.documents.iter().any(|&d| d == Pubkey::default())
+        !self.documents.iter().any(|&d| d == Pubkey::default())
     }
 
     /// Returns the list of program account signer seeds for the account.

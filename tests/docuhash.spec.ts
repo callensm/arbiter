@@ -206,6 +206,35 @@ describe('docuhash', async () => {
             assert.equal(docData.account.mintBump, 0)
           })
         })
+
+        it('and it will fail to create more documents after the clerk limit is met', async () => {
+          const newTitle = 'My Next Document'
+          const [newDocKey] = await web3.PublicKey.findProgramAddress(
+            [
+              Buffer.from('document'),
+              authority.publicKey.toBytes(),
+              Buffer.from(newTitle.slice(0, 32))
+            ],
+            program.programId
+          )
+
+          assert.isRejected(
+            program.simulate.initDocument(
+              newTitle,
+              participants.map(p => p.publicKey),
+              {
+                accounts: {
+                  authority: authority.publicKey,
+                  payer: authority.publicKey,
+                  clerk,
+                  document: newDocKey,
+                  systemProgram: web3.SystemProgram.programId
+                },
+                signers: [authority]
+              }
+            )
+          )
+        })
       })
     })
 
