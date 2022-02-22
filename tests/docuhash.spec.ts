@@ -469,6 +469,10 @@ describe('docuhash', async () => {
           assert.notEqual(oldClerkData.documents.length, newClerkData.documents.length)
           assert.lengthOf(newClerkData.documents, 3)
         })
+
+        it('increments the number of clerk upgrades for the account', () => {
+          assert.equal(newClerkData.upgrades, oldClerkData.upgrades + 1)
+        })
       })
     })
   })

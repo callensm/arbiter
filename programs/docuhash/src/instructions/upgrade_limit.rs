@@ -87,10 +87,9 @@ pub fn upgrade_limit_handler(ctx: Context<UpgradeLimit>, increase_amount: u8) ->
     **new_clerk = Clerk {
         authority: authority.key(),
         documents: new_documents,
+        upgrades: staged_clerk.upgrades.checked_add(1).unwrap(),
         bump: [*bumps.get("new_clerk").unwrap()],
     };
-
-    // TODO: charge limit increase fee
 
     Ok(())
 }

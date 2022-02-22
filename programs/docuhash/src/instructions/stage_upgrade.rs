@@ -64,6 +64,7 @@ pub fn stage_upgrade_handler(ctx: Context<StageUpgrade>) -> Result<()> {
     **staged_clerk = Clerk {
         authority: old_clerk.authority,
         documents: old_clerk.documents.clone(),
+        upgrades: old_clerk.upgrades,
         bump: [*bumps.get("staged_clerk").unwrap()],
     };
 

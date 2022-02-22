@@ -11,6 +11,9 @@ pub struct Clerk {
     /// The vector of `Document` public keys owned by the account.
     pub documents: Vec<Pubkey>,
 
+    /// The number of document limit upgrades this clerk has done.
+    pub upgrades: u8,
+
     /// The program account bump nonce.
     pub bump: [u8; 1],
 }

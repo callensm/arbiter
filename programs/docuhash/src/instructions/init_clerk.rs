@@ -55,6 +55,7 @@ pub fn init_clerk_handler(ctx: Context<InitClerk>, limit: u8) -> Result<()> {
     **clerk = Clerk {
         authority: authority.key(),
         documents: vec![Pubkey::default(); limit as usize],
+        upgrades: 0,
         bump: [*bumps.get("clerk").unwrap()],
     };
 
