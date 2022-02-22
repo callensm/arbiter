@@ -5,6 +5,9 @@ pub enum ErrorCode {
     #[msg("The clerk account's list of documents has reached the current limit.")]
     ClerkDocumentListIsFull,
 
+    #[msg("The provided clerk program account does not hold custody of the given document public key.")]
+    ClerkDoesNotHoldDocument,
+
     #[msg("The provided document limit for the clerk was less than or equal to zero.")]
     ClerkLimitIsZero,
 

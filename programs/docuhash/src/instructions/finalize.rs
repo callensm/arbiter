@@ -9,11 +9,16 @@ use crate::state::{Clerk, Document};
 
 #[derive(Accounts)]
 pub struct Finalize<'info> {
+    /// The transaction signer and owner of the `document`
+    /// and `clerk` program accounts.
     pub authority: Signer<'info>,
 
+    /// The system account that is paying for the initialization
+    /// of the token mint and associated token account.
     #[account(mut)]
     pub payer: SystemAccount<'info>,
 
+    /// The `Clerk` program account that is the holder of the `document`.
     #[account(
         seeds = [
             seeds::CLERK,
@@ -21,9 +26,12 @@ pub struct Finalize<'info> {
         ],
         bump = clerk.bump[0],
         has_one = authority,
+        constraint = clerk.is_holding(&document.key()) @ ErrorCode::ClerkDoesNotHoldDocument,
     )]
     pub clerk: Account<'info, Clerk>,
 
+    /// The `Document` program account that should contain all required
+    /// participant signatures and is being finalized by the `authority`.
     #[account(
         mut,
         seeds = [
@@ -38,6 +46,8 @@ pub struct Finalize<'info> {
     )]
     pub document: Account<'info, Document>,
 
+    /// The NFT token mint that will be initialized in ownership of
+    /// the `document` program account.
     #[account(
         init,
         payer = payer,
@@ -51,6 +61,8 @@ pub struct Finalize<'info> {
     )]
     pub mint: Account<'info, Mint>,
 
+    /// The token account that will hold the minted NFT for the `authority`
+    /// after the `document` has been verified as final.
     #[account(
         init,
         payer = payer,
@@ -59,12 +71,16 @@ pub struct Finalize<'info> {
     )]
     pub nft_token_account: Account<'info, TokenAccount>,
 
+    /// The global associated token program.
     pub associated_token_program: Program<'info, AssociatedToken>,
 
+    /// The global token program.
     pub token_program: Program<'info, Token>,
 
+    /// The global system program.
     pub system_program: Program<'info, System>,
 
+    /// The global rent system variable.
     pub rent: Sysvar<'info, Rent>,
 }
 
@@ -90,10 +106,7 @@ pub fn finalize_handler(ctx: Context<Finalize>) -> Result<()> {
         ..
     } = ctx;
 
-    document.mint = mint.key();
-    document.nft = nft_token_account.key();
-    document.mint_bump = *bumps.get("mint").unwrap();
-
+    document.set_nft_data(mint, nft_token_account, *bumps.get("mint").unwrap());
     document.try_finalize()?;
 
     mint_to(

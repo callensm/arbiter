@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use anchor_spl::token::{Mint, TokenAccount};
 
 use crate::error::ErrorCode;
 use crate::seeds;
@@ -61,6 +62,19 @@ impl Document {
         self.finalization_timestamp != 0
     }
 
+    /// Sets the program account fields related to the finalized token
+    /// mint and NFT account associations.
+    pub fn set_nft_data<'a>(
+        &mut self,
+        mint: &Account<'a, Mint>,
+        token_account: &Account<'a, TokenAccount>,
+        bump: u8,
+    ) {
+        self.mint = mint.key();
+        self.nft = token_account.key();
+        self.mint_bump = bump;
+    }
+
     /// The program account signer seeds for programmatic authority.
     pub fn signer_seeds(&self) -> [&[u8]; 4] {
         [
@@ -79,22 +93,22 @@ impl Document {
 
     /// Check if the argued index has been marked as already signing the document.
     pub fn try_has_signed<'a>(&self, participant: &Signer<'a>) -> Result<bool> {
-        let i = self.try_find_participant(participant.key())?;
+        let i = self.try_find_participant(&participant.key())?;
         Ok(*self.timestamps.get(i).unwrap() != 0)
     }
 
     /// Attempt to mark the argued public key participant as having signed the document.
     pub fn try_sign<'a>(&mut self, participant: &Signer<'a>) -> Result<()> {
-        let i = self.try_find_participant(participant.key())?;
+        let i = self.try_find_participant(&participant.key())?;
         self.timestamps[i] = Clock::get()?.unix_timestamp as u64;
         Ok(())
     }
 
     /// Attempt to find and return the index of the argued participant public key.
-    fn try_find_participant(&self, participant: Pubkey) -> Result<usize> {
+    fn try_find_participant(&self, participant: &Pubkey) -> Result<usize> {
         self.participants
             .iter()
-            .position(|&p| p == participant)
+            .position(|p| p == participant)
             .ok_or_else(|| error!(ErrorCode::ParticipantNotAssociated))
     }
 }
