@@ -34,7 +34,7 @@ impl Clerk {
     /// Checks if the program account contains the argued `Document`
     /// public key in its vector of documents.
     pub fn is_holding(&self, doc: &Pubkey) -> bool {
-        self.documents.iter().position(|d| d == doc).is_some()
+        self.documents.iter().any(|d| d == doc)
     }
 
     /// Returns the current document holding limit of the clerk.
