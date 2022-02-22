@@ -28,6 +28,11 @@ impl Clerk {
         !self.documents.iter().any(|&d| d == Pubkey::default())
     }
 
+    /// Returns the current document holding limit of the clerk.
+    pub fn limit(&self) -> usize {
+        self.documents.len()
+    }
+
     /// Returns the list of program account signer seeds for the account.
     pub fn signer_seeds(&self) -> [&[u8]; 3] {
         [seeds::CLERK, self.authority.as_ref(), &self.bump]
@@ -35,7 +40,7 @@ impl Clerk {
 
     /// Finds the first index of `Pubkey::default()` in the `documents` struct vector
     /// and replaces it with the argued `Document` public key.
-    pub fn try_assign(&mut self, document: Pubkey) -> ProgramResult {
+    pub fn try_assign(&mut self, document: Pubkey) -> Result<()> {
         let i = self
             .documents
             .iter()

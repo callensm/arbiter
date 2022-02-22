@@ -29,13 +29,13 @@ pub struct AddSignature<'info> {
 
 impl<'info> AddSignature<'info> {
     /// Instruction prevalidation for `add_signature`.
-    pub fn prevalidate(_ctx: &Context<Self>) -> ProgramResult {
+    pub fn prevalidate(_ctx: &Context<Self>) -> Result<()> {
         Ok(())
     }
 }
 
 /// Instruction entrypoint handler for `add_signature`.
-pub fn add_signature_handler(ctx: Context<AddSignature>) -> ProgramResult {
+pub fn add_signature_handler(ctx: Context<AddSignature>) -> Result<()> {
     let AddSignature {
         participant,
         document,

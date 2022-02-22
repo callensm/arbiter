@@ -23,6 +23,10 @@ pub mod seeds {
     /// The static seed for token mints created as PDAs.
     #[constant]
     pub const MINT: &[u8] = b"mint";
+
+    /// The static seed for staged program accounts.
+    #[constant]
+    pub const STAGED: &[u8] = b"staged";
 }
 
 #[program]
@@ -30,17 +34,17 @@ pub mod docuhash {
     use super::*;
 
     #[access_control(AddSignature::prevalidate(&ctx))]
-    pub fn add_signature(ctx: Context<AddSignature>) -> ProgramResult {
+    pub fn add_signature(ctx: Context<AddSignature>) -> Result<()> {
         instructions::add_signature_handler(ctx)
     }
 
     #[access_control(Finalize::prevalidate(&ctx))]
-    pub fn finalize(ctx: Context<Finalize>) -> ProgramResult {
+    pub fn finalize(ctx: Context<Finalize>) -> Result<()> {
         instructions::finalize_handler(ctx)
     }
 
     #[access_control(InitClerk::prevalidate(&ctx, limit))]
-    pub fn init_clerk(ctx: Context<InitClerk>, limit: u8) -> ProgramResult {
+    pub fn init_clerk(ctx: Context<InitClerk>, limit: u8) -> Result<()> {
         instructions::init_clerk_handler(ctx, limit)
     }
 
@@ -49,7 +53,17 @@ pub mod docuhash {
         ctx: Context<InitDocument>,
         title: String,
         participants: Vec<Pubkey>,
-    ) -> ProgramResult {
+    ) -> Result<()> {
         instructions::init_document_handler(ctx, title, participants)
+    }
+
+    #[access_control(StageUpgrade::prevalidate(&ctx))]
+    pub fn stage_upgrade(ctx: Context<StageUpgrade>) -> Result<()> {
+        instructions::stage_upgrade_handler(ctx)
+    }
+
+    #[access_control(UpgradeLimit::prevalidate(&ctx, increase_amount))]
+    pub fn upgrade_limit(ctx: Context<UpgradeLimit>, increase_amount: u8) -> Result<()> {
+        instructions::upgrade_limit_handler(ctx, increase_amount)
     }
 }

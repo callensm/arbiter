@@ -70,13 +70,13 @@ pub struct Finalize<'info> {
 
 impl<'info> Finalize<'info> {
     /// Instruction prevalidation for `finalize`.
-    pub fn prevalidate(_ctx: &Context<Self>) -> ProgramResult {
+    pub fn prevalidate(_ctx: &Context<Self>) -> Result<()> {
         Ok(())
     }
 }
 
 /// Instruction entrypoint handler for `finalize`.
-pub fn finalize_handler(ctx: Context<Finalize>) -> ProgramResult {
+pub fn finalize_handler(ctx: Context<Finalize>) -> Result<()> {
     let Context {
         accounts:
             Finalize {

@@ -36,14 +36,14 @@ pub struct InitClerk<'info> {
 
 impl<'info> InitClerk<'info> {
     /// Instruction prevalidation for `init_clerk`.
-    pub fn prevalidate(_ctx: &Context<Self>, limit: u8) -> ProgramResult {
+    pub fn prevalidate(_ctx: &Context<Self>, limit: u8) -> Result<()> {
         require!(limit > 0, ErrorCode::ClerkLimitIsZero);
         Ok(())
     }
 }
 
 /// Instruction entrypoint handler for `init_clerk`.
-pub fn init_clerk_handler(ctx: Context<InitClerk>, limit: u8) -> ProgramResult {
+pub fn init_clerk_handler(ctx: Context<InitClerk>, limit: u8) -> Result<()> {
     let Context {
         accounts: InitClerk {
             authority, clerk, ..

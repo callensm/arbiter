@@ -1,12 +1,18 @@
-use anchor_lang::prelude::{error, thiserror};
+use anchor_lang::prelude::{error_code, Error};
 
-#[error]
+#[error_code]
 pub enum ErrorCode {
     #[msg("The clerk account's list of documents has reached the current limit.")]
     ClerkDocumentListIsFull,
 
-    #[msg("The provided document limit for the clerk was zero.")]
+    #[msg("The provided document limit for the clerk was less than or equal to zero.")]
     ClerkLimitIsZero,
+
+    #[msg("The provided amount to increase the clerk limit by was less than or equal to zero.")]
+    ClerkUpgradeAmountIsZero,
+
+    #[msg("The clerk account provided for upgrading has remaining document space.")]
+    ClerkUpgradingWithRemainingSpace,
 
     #[msg("The document submitted for updating has already been finalized with all required signatures.")]
     DocumentIsAlreadyFinalized,

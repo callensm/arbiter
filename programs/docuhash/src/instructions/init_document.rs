@@ -49,11 +49,7 @@ pub struct InitDocument<'info> {
 
 impl<'info> InitDocument<'info> {
     /// Instruction prevalidation for `init_document`.
-    pub fn prevalidate(
-        _ctx: &Context<Self>,
-        title: &str,
-        participants: &[Pubkey],
-    ) -> ProgramResult {
+    pub fn prevalidate(_ctx: &Context<Self>, title: &str, participants: &[Pubkey]) -> Result<()> {
         require!(!title.is_empty(), ErrorCode::EmptyDocumentTitle);
 
         require!(
@@ -82,7 +78,7 @@ pub fn init_document_handler(
     ctx: Context<InitDocument>,
     title: String,
     participants: Vec<Pubkey>,
-) -> ProgramResult {
+) -> Result<()> {
     let Context {
         accounts:
             InitDocument {

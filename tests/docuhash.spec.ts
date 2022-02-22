@@ -24,6 +24,7 @@ describe('docuhash', async () => {
 
   const title = 'My Test Document'
   let clerk: web3.PublicKey
+  let stagedClerk: web3.PublicKey
   let document: web3.PublicKey
   let mint: web3.PublicKey
   let nftTokenAccount: web3.PublicKey
@@ -389,6 +390,84 @@ describe('docuhash', async () => {
           const info = await program.provider.connection.getAccountInfo(mint)
           const m = MintLayout.decode(info.data)
           assert.equal(m.mintAuthorityOption, 0)
+        })
+      })
+    })
+
+    describe('increase the document storage limit for their clerk by', () => {
+      let oldClerkData: any
+
+      describe('using `stage_upgrade` to prepare their clerk data for migration', () => {
+        before(async () => {
+          oldClerkData = await program.account.clerk.fetch(clerk)
+          ;[stagedClerk] = await web3.PublicKey.findProgramAddress(
+            [Buffer.from('clerk'), Buffer.from('staged'), authority.publicKey.toBytes()],
+            program.programId
+          )
+
+          await program.rpc.stageUpgrade({
+            accounts: {
+              authority: authority.publicKey,
+              payer: authority.publicKey,
+              receiver: authority.publicKey,
+              oldClerk: clerk,
+              stagedClerk,
+              systemProgram: web3.SystemProgram.programId
+            },
+            signers: [authority]
+          })
+        })
+
+        describe('which will', () => {
+          it('close the original clerk program account', async () => {
+            const c = await program.account.clerk.fetchNullable(clerk)
+            assert.isNull(c)
+          })
+
+          it('create a new staged seeded clerk account with migrated data', async () => {
+            const c = await program.account.clerk.fetchNullable(stagedClerk)
+            assert.isNotNull(c)
+            assert.isTrue(c.authority.equals(oldClerkData.authority))
+            assert.deepEqual(oldClerkData.documents, c.documents)
+            assert.equal(oldClerkData.documents.length, c.documents.length)
+          })
+        })
+      })
+
+      describe('and then invoking `upgrade_limit` in order to', () => {
+        let newClerkData: any
+
+        before(async () => {
+          await program.rpc.upgradeLimit(2, {
+            accounts: {
+              authority: authority.publicKey,
+              payer: authority.publicKey,
+              receiver: authority.publicKey,
+              stagedClerk,
+              newClerk: clerk,
+              systemProgram: web3.SystemProgram.programId
+            },
+            signers: [authority]
+          })
+        })
+
+        it('reinitialize their clerk account', async () => {
+          newClerkData = await program.account.clerk.fetch(clerk)
+          assert.isTrue(newClerkData.authority.equals(authority.publicKey))
+          assert.isTrue(newClerkData.authority.equals(oldClerkData.authority))
+          assert.deepEqual(newClerkData.bump, oldClerkData.bump)
+        })
+
+        it('copy over their original set of document public keys', () => {
+          assert.deepEqual(
+            oldClerkData.documents,
+            newClerkData.documents.slice(0, oldClerkData.documents.length)
+          )
+        })
+
+        it('increase the number of documents their migrated account can hold', () => {
+          assert.notEqual(oldClerkData.documents.length, newClerkData.documents.length)
+          assert.lengthOf(newClerkData.documents, 3)
         })
       })
     })

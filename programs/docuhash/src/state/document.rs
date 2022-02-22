@@ -72,29 +72,29 @@ impl Document {
     }
 
     /// Try to set the timestamp of the document finalization in the account data.
-    pub fn try_finalize(&mut self) -> ProgramResult {
+    pub fn try_finalize(&mut self) -> Result<()> {
         self.finalization_timestamp = Clock::get()?.unix_timestamp as u64;
         Ok(())
     }
 
     /// Check if the argued index has been marked as already signing the document.
-    pub fn try_has_signed<'a>(&self, participant: &Signer<'a>) -> Result<bool, ProgramError> {
+    pub fn try_has_signed<'a>(&self, participant: &Signer<'a>) -> Result<bool> {
         let i = self.try_find_participant(participant.key())?;
         Ok(*self.timestamps.get(i).unwrap() != 0)
     }
 
     /// Attempt to mark the argued public key participant as having signed the document.
-    pub fn try_sign<'a>(&mut self, participant: &Signer<'a>) -> ProgramResult {
+    pub fn try_sign<'a>(&mut self, participant: &Signer<'a>) -> Result<()> {
         let i = self.try_find_participant(participant.key())?;
         self.timestamps[i] = Clock::get()?.unix_timestamp as u64;
         Ok(())
     }
 
     /// Attempt to find and return the index of the argued participant public key.
-    fn try_find_participant(&self, participant: Pubkey) -> Result<usize, ProgramError> {
+    fn try_find_participant(&self, participant: Pubkey) -> Result<usize> {
         self.participants
             .iter()
             .position(|&p| p == participant)
-            .ok_or_else(|| ErrorCode::ParticipantNotAssociated.into())
+            .ok_or_else(|| error!(ErrorCode::ParticipantNotAssociated))
     }
 }
