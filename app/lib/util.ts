@@ -1,5 +1,6 @@
 import { PublicKey } from '@solana/web3.js'
-import { IDL } from './hashusign'
+import { PROGRAM_ID } from './context'
+import { IDL } from './idl'
 
 const seeds: Record<'clerk' | 'document' | 'mint' | 'staged', string> = {
   clerk: IDL.constants[0].value.replace(/[b"]/g, ''),
@@ -12,14 +13,10 @@ const seeds: Record<'clerk' | 'document' | 'mint' | 'staged', string> = {
  * Derive the public key and bump nonce of a `Clerk`
  * program account.
  * @param {PublicKey} authority
- * @param {PublicKey} programId
  * @returns {Promise<[PublicKey, number]>}
  */
-export const getClerkProgramAddress = (
-  authority: PublicKey,
-  programId: PublicKey
-): Promise<[PublicKey, number]> =>
-  PublicKey.findProgramAddress([Buffer.from(seeds.clerk), authority.toBytes()], programId)
+export const getClerkProgramAddress = (authority: PublicKey): Promise<[PublicKey, number]> =>
+  PublicKey.findProgramAddress([Buffer.from(seeds.clerk), authority.toBytes()], PROGRAM_ID)
 
 /**
  * Truncates the argued base-58 key to the first

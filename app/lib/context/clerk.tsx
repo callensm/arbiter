@@ -1,9 +1,8 @@
 import type { IdlAccounts, ProgramAccount } from '@project-serum/anchor'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { PublicKey } from '@solana/web3.js'
 import { createContext, type FunctionComponent, useContext, useEffect, useState } from 'react'
 import { useProgram } from './program'
-import { Hashusign } from '../hashusign'
+import { Hashusign } from '../idl'
 import { getClerkProgramAddress } from '../util'
 import { notifyClerkFetchError } from '../notifications'
 
@@ -19,29 +18,21 @@ export const ClerkProvider: FunctionComponent = ({ children }) => {
   const { program } = useProgram()
   const { publicKey } = useWallet()
 
-  const [clerkKey, setClerkKey] = useState<PublicKey | null>(null)
   const [clerk, setClerk] = useState<ProgramAccount<Clerk> | null>(null)
 
   useEffect(() => {
     if (!publicKey) return
 
-    getClerkProgramAddress(publicKey, program.programId)
-      .then(([key]: [PublicKey, number]) => setClerkKey(key))
-      .catch(console.error)
-  }, [program, publicKey])
-
-  useEffect(() => {
-    if (!clerkKey) return
-
-    program.account.clerk
-      .fetchNullable(clerkKey)
-      .then(c => {
-        if (c) {
-          setClerk({ account: c as Clerk, publicKey: clerkKey })
-        }
-      })
+    getClerkProgramAddress(publicKey)
+      .then(([clerkKey]) =>
+        program.account.clerk.fetchNullable(clerkKey).then(c => {
+          if (c) {
+            setClerk({ account: c as Clerk, publicKey: clerkKey })
+          }
+        })
+      )
       .catch(notifyClerkFetchError)
-  }, [program, clerkKey])
+  }, [program, publicKey])
 
   return <ClerkContext.Provider value={{ clerk }}>{children}</ClerkContext.Provider>
 }

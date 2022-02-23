@@ -1,9 +1,11 @@
 import { Program, Provider } from '@project-serum/anchor'
 import { type AnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react'
+import { PublicKey } from '@solana/web3.js'
 import { createContext, type FunctionComponent, useContext, useMemo } from 'react'
-import { type Hashusign, IDL } from '../hashusign'
+import { type Hashusign, IDL } from '../idl'
+const { metadata } = require('../idl/hashusign.json')
 
-export const PROGRAM_ID: string = '7NSjhnPPnaP1bRocgazKQow3KXGky9MRErL1jZ5fAitj'
+export const PROGRAM_ID = new PublicKey(metadata.address)
 
 export interface ProgramContextState {
   program: Program<Hashusign>
@@ -13,12 +15,21 @@ export const ProgramContext = createContext<ProgramContextState>({} as ProgramCo
 
 export const ProgramProvider: FunctionComponent = ({ children }) => {
   const { connection } = useConnection()
-  const wallet = useWallet()
+  const { publicKey, signTransaction, signAllTransactions } = useWallet()
+
+  const anchorWallet = useMemo(
+    () => ({
+      publicKey,
+      signTransaction,
+      signAllTransactions
+    }),
+    [publicKey, signTransaction, signAllTransactions]
+  )
 
   const program = useMemo(() => {
-    const provider = new Provider(connection, wallet as AnchorWallet, {})
+    const provider = new Provider(connection, anchorWallet as AnchorWallet, {})
     return new Program<Hashusign>(IDL, PROGRAM_ID, provider)
-  }, [connection, wallet])
+  }, [connection, anchorWallet])
 
   return <ProgramContext.Provider value={{ program }}>{children}</ProgramContext.Provider>
 }

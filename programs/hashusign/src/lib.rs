@@ -2,11 +2,11 @@ use anchor_lang::prelude::*;
 
 mod error;
 mod instructions;
-mod state;
+pub mod state;
 
 use instructions::*;
 
-declare_id!("7NSjhnPPnaP1bRocgazKQow3KXGky9MRErL1jZ5fAitj");
+declare_id!("Hashu8jdNgYcv7d3Xqm59uuh9r3Q73t5fYQ8Bn5FkiNW");
 
 /// The static PDA seeds used throughout the program.
 pub mod seeds {

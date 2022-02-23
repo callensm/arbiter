@@ -10,7 +10,7 @@ const Header: FunctionComponent = () => {
       </Typography.Title>
       <Space size='large'>
         <ConnectButton />
-        <Tag color='yellow'>devnet</Tag>
+        <Tag color='cyan'>devnet</Tag>
       </Space>
     </Layout.Header>
   )
