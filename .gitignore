@@ -3,4 +3,5 @@
 .DS_Store
 .next/
 target/
+test-ledger/
 node_modules/

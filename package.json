@@ -2,7 +2,8 @@
   "scripts": {
     "fmt": "prettier --check .",
     "fmt:fix": "prettier --write .",
-    "precommit": "npm run fmt:fix && cargo clippy -- -Dwarnings && anchor test",
+    "idl": "cp target/types/hashusign.ts app/lib",
+    "precommit": "npm run fmt:fix && cargo clippy -- -Dwarnings",
     "prepare": "husky install"
   },
   "dependencies": {
