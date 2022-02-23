@@ -6,7 +6,7 @@ mod state;
 
 use instructions::*;
 
-declare_id!("8t2FtnqVEoKw16CsyEDA9syRMi4At2rPNf337kwMtuw9");
+declare_id!("7NSjhnPPnaP1bRocgazKQow3KXGky9MRErL1jZ5fAitj");
 
 /// The static PDA seeds used throughout the program.
 pub mod seeds {
@@ -30,7 +30,7 @@ pub mod seeds {
 }
 
 #[program]
-pub mod docuhash {
+pub mod hashusign {
     use super::*;
 
     #[access_control(AddSignature::prevalidate(&ctx))]

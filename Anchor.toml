@@ -2,7 +2,7 @@
 seeds = false
 
 [programs.localnet]
-docuhash = "8t2FtnqVEoKw16CsyEDA9syRMi4At2rPNf337kwMtuw9"
+hashusign = "7NSjhnPPnaP1bRocgazKQow3KXGky9MRErL1jZ5fAitj"
 
 [registry]
 url = "https://anchor.projectserum.com"

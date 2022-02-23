@@ -1,1 +1,1 @@
-# DocuHash
+# HashuSign

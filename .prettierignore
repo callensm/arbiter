@@ -1,3 +1,4 @@
 .anchor/
+.next/
 node_modules/
 target/

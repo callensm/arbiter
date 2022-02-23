@@ -10,14 +10,14 @@ import {
 import { ASSOCIATED_TOKEN_PROGRAM_ID, MintLayout, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { assert, use as chaiUse } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
-import { Docuhash } from '../target/types/docuhash'
+import { Hashusign } from '../target/types/hashusign'
 
 chaiUse(chaiAsPromised)
 
-describe('docuhash', async () => {
+describe('hashusign', async () => {
   setProvider(Provider.env())
 
-  const program = workspace.Docuhash as Program<Docuhash>
+  const program = workspace.Hashusign as Program<Hashusign>
 
   const authority = (program.provider.wallet as any).payer as web3.Keypair
   const participants = [...Array(4)].map(() => web3.Keypair.generate())
