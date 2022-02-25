@@ -306,6 +306,10 @@ export type Hashusign = {
             type: 'string'
           },
           {
+            name: 'createdAt'
+            type: 'u64'
+          },
+          {
             name: 'participants'
             type: {
               vec: 'publicKey'
@@ -695,6 +699,10 @@ export const IDL: Hashusign = {
           {
             name: 'title',
             type: 'string'
+          },
+          {
+            name: 'createdAt',
+            type: 'u64'
           },
           {
             name: 'participants',

@@ -1,14 +1,14 @@
 import { UserAddOutlined } from '@ant-design/icons'
-import { useConnection, useWallet } from '@solana/wallet-adapter-react'
+import { useWallet } from '@solana/wallet-adapter-react'
 import { SystemProgram } from '@solana/web3.js'
 import { Button, Card, Typography } from 'antd'
 import { useCallback, useState, type FunctionComponent } from 'react'
 import { useClerk, useProgram } from '../../lib/context'
 import { notifySolScan, notifyTransactionError } from '../../lib/notifications'
+import { getDocumentProgramAddress } from '../../lib/util'
 
 const AccountDetailsPanel: FunctionComponent = () => {
   const clerk = useClerk()
-  const { connection } = useConnection()
   const { program } = useProgram()
   const { connected, publicKey, sendTransaction } = useWallet()
 
@@ -29,22 +29,50 @@ const AccountDetailsPanel: FunctionComponent = () => {
         }
       })
 
-      const sig = await sendTransaction(tx, connection)
-      await connection.confirmTransaction(sig, 'confirmed')
+      const sig = await sendTransaction(tx, program.provider.connection)
+      await program.provider.connection.confirmTransaction(sig, 'confirmed')
 
       notifySolScan(sig, 'devnet')
     } catch (err) {
-      console.error(err)
       notifyTransactionError(err as Error)
     } finally {
       setLoading(false)
     }
   }, [clerk.publicKey, connected, publicKey])
 
+  const handleNewDocument = useCallback(async () => {
+    if (!connected || !publicKey || !clerk.publicKey) return
+
+    try {
+      const title = 'My First Document'
+      const [documentPublicKey] = await getDocumentProgramAddress(title, publicKey)
+
+      const tx = program.transaction.initDocument(title, [publicKey], {
+        accounts: {
+          authority: publicKey,
+          payer: publicKey,
+          clerk: clerk.publicKey,
+          document: documentPublicKey,
+          systemProgram: SystemProgram.programId
+        }
+      })
+
+      const sig = await sendTransaction(tx, program.provider.connection)
+      await program.provider.connection.confirmTransaction(sig, 'confirmed')
+
+      notifySolScan(sig, 'devnet')
+    } catch (err) {
+      notifyTransactionError(err as Error)
+    }
+  }, [clerk.publicKey, connected, publicKey])
+
   return (
     <Card style={{ borderRadius: 10 }}>
       {clerk.publicKey && clerk.data ? (
-        <span>{clerk.publicKey.toBase58()}</span>
+        <>
+          <span>{clerk.publicKey.toBase58()}</span>
+          <Button onClick={handleNewDocument}>New Document</Button>
+        </>
       ) : (
         <div style={{ textAlign: 'center' }}>
           <Typography.Title level={2}>

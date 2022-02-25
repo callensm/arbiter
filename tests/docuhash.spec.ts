@@ -86,7 +86,11 @@ describe('hashusign', async () => {
     describe('invoke `init_document` to create a new legal document', () => {
       before(async () => {
         ;[document] = await web3.PublicKey.findProgramAddress(
-          [Buffer.from('document'), authority.publicKey.toBytes(), Buffer.from(title.slice(0, 32))],
+          [
+            Buffer.from('document'),
+            authority.publicKey.toBytes(),
+            Buffer.from(title.substring(0, 32))
+          ],
           program.programId
         )
       })
