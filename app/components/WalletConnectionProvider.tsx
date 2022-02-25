@@ -32,7 +32,9 @@ const WalletConnectionProvider: FunctionComponent<WalletConnectionProviderProps>
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={supportedWallets}>{children}</WalletProvider>
+      <WalletProvider wallets={supportedWallets} autoConnect>
+        {children}
+      </WalletProvider>
     </ConnectionProvider>
   )
 }

@@ -62,8 +62,8 @@ export function notifySolScan(signature: string, cluster?: Cluster) {
     message: 'Transaction Success',
     description: (
       <a
-        target='_blank'
-        rel='noreferrer'
+        target="_blank"
+        rel="noreferrer"
         href={`https://solscan.io/tx/${signature}${clusterParam}`}
       >
         View on SolScan

@@ -82,7 +82,7 @@ const AccountDetailsPanel: FunctionComponent = () => {
             To get started, initialize your `Clerk` program account.
           </Typography.Paragraph>
           <Button
-            type='primary'
+            type="primary"
             loading={loading}
             icon={<UserAddOutlined />}
             onClick={handleCreateClerk}

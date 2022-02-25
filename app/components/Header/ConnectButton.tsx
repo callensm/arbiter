@@ -38,11 +38,11 @@ const ConnectButton: FunctionComponent = () => {
   const walletIcon = useMemo(
     () => (
       <img
-        id='wallet-btn-icon'
+        id="wallet-btn-icon"
         src={wallet?.adapter.icon || ''}
-        alt='wallet-icon'
-        height='90%'
-        width='90%'
+        alt="wallet-icon"
+        height="90%"
+        width="90%"
       />
     ),
     [wallet]
@@ -53,13 +53,13 @@ const ConnectButton: FunctionComponent = () => {
       {wallet ? (
         <Space>
           {publicKey && connected ? (
-            <Button type='primary' icon={<WalletOutlined />}>
+            <Button type="primary" icon={<WalletOutlined />}>
               {truncatePublicKey(publicKey.toBase58())}
             </Button>
           ) : (
             <Button
               style={{ display: 'flex' }}
-              type='primary'
+              type="primary"
               icon={walletIcon}
               loading={connecting}
               onClick={handleConnectToWallet}
@@ -70,7 +70,7 @@ const ConnectButton: FunctionComponent = () => {
           <Button onClick={handleResetWallet}>Disconnect</Button>
         </Space>
       ) : (
-        <Button type='primary' icon={<WalletOutlined />} onClick={handleOpenModal}>
+        <Button type="primary" icon={<WalletOutlined />} onClick={handleOpenModal}>
           Select Wallet
         </Button>
       )}

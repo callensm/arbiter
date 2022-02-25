@@ -8,9 +8,9 @@ const Header: FunctionComponent = () => {
       <Typography.Title style={{ margin: 0, flexGrow: 1 }} level={3}>
         HashuSign
       </Typography.Title>
-      <Space size='large'>
+      <Space size="large">
         <ConnectButton />
-        <Tag color='cyan'>devnet</Tag>
+        <Tag color="cyan">devnet</Tag>
       </Space>
     </Layout.Header>
   )

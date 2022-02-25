@@ -5,10 +5,10 @@ class HashuSignDocument extends Document {
     return (
       <Html>
         <Head>
-          <meta name='description' content='Signing documents with the power of Solana.' />
+          <meta name="description" content="Signing documents with the power of Solana." />
           <link
-            rel='stylesheet'
-            href='https://fonts.googleapis.com/css2?family=Nunito&display=swap'
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Nunito&display=swap"
           />
         </Head>
         <body>

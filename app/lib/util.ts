@@ -1,7 +1,7 @@
 import { createDocumentTitleSeed } from '@hashusign/wasm'
-import { ProgramAccount } from '@project-serum/anchor'
+import { BN, type ProgramAccount } from '@project-serum/anchor'
 import { PublicKey } from '@solana/web3.js'
-import { Document, PROGRAM_ID } from './context'
+import { type Document, PROGRAM_ID } from './context'
 import { IDL } from './idl'
 
 export type DocumentTableRow = {
@@ -10,7 +10,7 @@ export type DocumentTableRow = {
   participants: string[]
   signatures: string
   lastUpdated: string
-  finalized: string | null
+  finalized: boolean
 }
 
 const seeds: Record<'clerk' | 'document' | 'mint' | 'staged', string> = {
@@ -19,6 +19,15 @@ const seeds: Record<'clerk' | 'document' | 'mint' | 'staged', string> = {
   mint: IDL.constants[2].value.replace(/[b"]/g, ''),
   staged: IDL.constants[3].value.replace(/[b"]/g, '')
 }
+
+/**
+ * Convert the argued `BN` as a UNIX timestamp into the locale
+ * date-time string for the user.
+ * @param {BN} bn
+ * @returns {string}
+ */
+export const convertToLocaleDate = (unix: BN | number): string =>
+  new Date((unix instanceof BN ? unix.toNumber() : unix) * 1000).toLocaleString()
 
 /**
  * Converts the argued array of document program accounts into
@@ -36,13 +45,10 @@ export const generateDocumentTableData = (
     signatures: `${doc.account.timestamps.filter(t => !t.isZero()).length} of ${
       doc.account.timestamps.length
     }`,
-    lastUpdated: new Date(
-      Math.max(doc.account.createdAt.toNumber(), ...doc.account.timestamps.map(t => t.toNumber())) *
-        1000
-    ).toLocaleString(),
-    finalized: doc.account.finalizationTimestamp.isZero()
-      ? null
-      : new Date(doc.account.finalizationTimestamp.toNumber() * 1000).toLocaleDateString()
+    lastUpdated: convertToLocaleDate(
+      Math.max(doc.account.createdAt.toNumber(), ...doc.account.timestamps.map(t => t.toNumber()))
+    ),
+    finalized: !doc.account.finalizationTimestamp.isZero()
   }))
 }
 
