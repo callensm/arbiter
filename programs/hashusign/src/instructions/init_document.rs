@@ -91,6 +91,7 @@ pub fn init_document_handler(
         ..
     } = ctx;
 
+    let now = Clock::get()?.unix_timestamp as u64;
     let num_participants = participants.len();
 
     **document = Document {
@@ -98,6 +99,7 @@ pub fn init_document_handler(
         mint: Pubkey::default(),
         nft: Pubkey::default(),
         title,
+        created_at: now,
         participants,
         timestamps: vec![0; num_participants],
         finalization_timestamp: 0,

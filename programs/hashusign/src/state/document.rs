@@ -18,6 +18,9 @@ pub struct Document {
     /// The immutable title of the document (cannot be changed after creation).
     pub title: String,
 
+    /// The unix timestamp of when the document was initialized.
+    pub created_at: u64,
+
     /// The public keys that are required to sign and send approval transactions.
     pub participants: Vec<Pubkey>,
 
@@ -38,7 +41,7 @@ impl Document {
     /// Returns the byte size of the `Document` struct given the number of
     /// participants required to submit signed approval transactions.
     pub fn space(title_size: usize, part_size: usize) -> usize {
-        8 + 32 * 4 + (4 + title_size) + (4 + 32 * part_size) + (4 + 8 * part_size) + 8 + 1 + 1
+        8 + 32 * 4 + (4 + title_size) + 8 + (4 + 32 * part_size) + (4 + 8 * part_size) + 8 + 1 + 1
     }
 
     /// Convert a full document title string into a usable address seed.
