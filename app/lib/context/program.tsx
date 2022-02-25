@@ -3,9 +3,8 @@ import { type AnchorWallet, useConnection, useWallet } from '@solana/wallet-adap
 import { PublicKey } from '@solana/web3.js'
 import { createContext, type FunctionComponent, useContext, useMemo } from 'react'
 import { type Hashusign, IDL } from '../idl'
-const { metadata } = require('../idl/hashusign.json')
 
-export const PROGRAM_ID = new PublicKey(metadata.address)
+export const PROGRAM_ID = new PublicKey('Hashu8jdNgYcv7d3Xqm59uuh9r3Q73t5fYQ8Bn5FkiNW')
 
 export interface ProgramContextState {
   program: Program<Hashusign>

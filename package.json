@@ -1,9 +1,9 @@
 {
   "scripts": {
-    "build:wasm": "wasm-pack build --scope hashusign ./wasm",
+    "build:wasm": "wasm-pack build --release --scope hashusign ./wasm",
     "fmt": "prettier --check .",
     "fmt:fix": "prettier --write .",
-    "idl": "cp target/types/hashusign.ts app/lib/idl/index.ts && cp target/idl/hashusign.json app/lib/idl",
+    "idl": "cp target/types/hashusign.ts app/lib/idl.ts",
     "precommit": "npm run fmt:fix && cargo clippy -- -Dwarnings",
     "prepare": "husky install"
   },

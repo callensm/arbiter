@@ -1,40 +1,41 @@
-import type { IdlAccounts, ProgramAccount } from '@project-serum/anchor'
+import type { IdlAccounts } from '@project-serum/anchor'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { createContext, type FunctionComponent, useContext, useEffect, useState } from 'react'
 import { useProgram } from './program'
 import { Hashusign } from '../idl'
 import { getClerkProgramAddress } from '../util'
 import { notifyClerkFetchError } from '../notifications'
+import { PublicKey } from '@solana/web3.js'
 
 export type Clerk = IdlAccounts<Hashusign>['clerk']
 
 export interface ClerkContextState {
-  clerk: ProgramAccount<Clerk> | null
+  data: Clerk | null
+  publicKey: PublicKey | null
 }
 
 export const ClerkContext = createContext<ClerkContextState>({} as ClerkContextState)
 
 export const ClerkProvider: FunctionComponent = ({ children }) => {
   const { program } = useProgram()
-  const { publicKey } = useWallet()
+  const { publicKey: walletPublicKey } = useWallet()
 
-  const [clerk, setClerk] = useState<ProgramAccount<Clerk> | null>(null)
+  const [publicKey, setPublicKey] = useState<PublicKey | null>(null)
+  const [data, setData] = useState<Clerk | null>(null)
 
   useEffect(() => {
-    if (!publicKey) return
+    if (!walletPublicKey) return
 
-    getClerkProgramAddress(publicKey)
-      .then(([clerkKey]) =>
-        program.account.clerk.fetchNullable(clerkKey).then(c => {
-          if (c) {
-            setClerk({ account: c as Clerk, publicKey: clerkKey })
-          }
-        })
-      )
+    getClerkProgramAddress(walletPublicKey)
+      .then(async ([clerkKey]) => {
+        setPublicKey(clerkKey)
+        const c = await program.account.clerk.fetchNullable(clerkKey)
+        if (c) setData(c as Clerk)
+      })
       .catch(notifyClerkFetchError)
-  }, [program, publicKey])
+  }, [program, walletPublicKey])
 
-  return <ClerkContext.Provider value={{ clerk }}>{children}</ClerkContext.Provider>
+  return <ClerkContext.Provider value={{ data, publicKey }}>{children}</ClerkContext.Provider>
 }
 
 /**

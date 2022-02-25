@@ -3,3 +3,6 @@ members = [
     "programs/*",
     "wasm"
 ]
+
+[profile.release.package.wasm]
+opt-level = "z"
