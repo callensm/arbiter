@@ -1,3 +1,4 @@
+import { createDocumentTitleSeed } from '@hashusign/wasm'
 import { ProgramAccount } from '@project-serum/anchor'
 import { PublicKey } from '@solana/web3.js'
 import { Document, PROGRAM_ID } from './context'
@@ -66,7 +67,7 @@ export const getDocumentProgramAddress = (
   authority: PublicKey
 ): Promise<[PublicKey, number]> =>
   PublicKey.findProgramAddress(
-    [Buffer.from(seeds.document), authority.toBytes(), Buffer.from(title.substring(0, 32))],
+    [Buffer.from(seeds.document), authority.toBytes(), createDocumentTitleSeed(title)],
     PROGRAM_ID
   )
 

@@ -12,3 +12,8 @@ pub fn get_clerk_space(size_limit: usize) -> usize {
 pub fn get_document_space(title_len: usize, num_participants: usize) -> usize {
     Document::space(title_len, num_participants)
 }
+
+#[wasm_bindgen(js_name = "createDocumentTitleSeed")]
+pub fn create_document_title_seed(title: &str) -> Box<[u8]> {
+    Box::from(Document::title_seed(title))
+}
