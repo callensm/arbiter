@@ -1,9 +1,18 @@
-import { CheckCircleFilled, CloseCircleFilled, EyeOutlined } from '@ant-design/icons'
-import { Button, Table, Tooltip, type TableColumnsType } from 'antd'
+import {
+  CheckCircleFilled,
+  CloseCircleFilled,
+  EyeOutlined,
+  KeyOutlined,
+  LinkOutlined
+} from '@ant-design/icons'
+import { Button, message, Table, Tooltip, type TableColumnsType } from 'antd'
+import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useState, type FunctionComponent } from 'react'
 import { useDocuments } from '../../lib/context'
 import { generateDocumentTableData, type DocumentTableRow } from '../../lib/util'
-import DocumentModal from './DocumentModal'
+
+const LazyDocumentModal = dynamic(() => import('./DocumentModal'))
 
 const DocumentsTable: FunctionComponent = () => {
   const { documents } = useDocuments()
@@ -34,7 +43,8 @@ const DocumentsTable: FunctionComponent = () => {
       {
         title: 'Signatures',
         dataIndex: 'signatures',
-        key: 'signatures'
+        key: 'signatures',
+        render: (val: number, record: DocumentTableRow) => `${val} of ${record.participants.length}`
       },
       {
         title: 'Last Updated',
@@ -57,12 +67,28 @@ const DocumentsTable: FunctionComponent = () => {
       {
         title: 'Actions',
         key: 'actions',
-        render: (_val: any, _record: DocumentTableRow, i: number) => (
-          <Button
-            type="link"
-            icon={<EyeOutlined style={{ fontSize: '1.25em' }} />}
-            onClick={() => setViewDocument(i)}
-          />
+        render: (_val: any, record: DocumentTableRow, i: number) => (
+          <Button.Group>
+            <Link href={`/sign/${record.key}`}>
+              <Button type="link" icon={<KeyOutlined />} />
+            </Link>
+            <Button
+              type="link"
+              icon={<EyeOutlined style={{ fontSize: '1.25em' }} />}
+              onClick={() => setViewDocument(i)}
+            />
+            <Button
+              type="link"
+              icon={<LinkOutlined />}
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/sign/${record.key}`)
+                message.info({
+                  content: 'Signing link copied!',
+                  duration: 2
+                })
+              }}
+            />
+          </Button.Group>
         )
       }
     ],
@@ -72,7 +98,7 @@ const DocumentsTable: FunctionComponent = () => {
   return (
     <>
       <Table loading={!rows} dataSource={rows ?? []} columns={columns} />
-      <DocumentModal
+      <LazyDocumentModal
         index={viewDocument ?? 0}
         documents={documents}
         visible={viewDocument !== null}

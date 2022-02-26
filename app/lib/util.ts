@@ -8,7 +8,7 @@ export type DocumentTableRow = {
   key: string
   title: string
   participants: string[]
-  signatures: string
+  signatures: number
   lastUpdated: string
   finalized: boolean
 }
@@ -42,9 +42,7 @@ export const generateDocumentTableData = (
     key: doc.publicKey.toBase58(),
     title: doc.account.title,
     participants: doc.account.participants.map(key => key.toBase58()),
-    signatures: `${doc.account.timestamps.filter(t => !t.isZero()).length} of ${
-      doc.account.timestamps.length
-    }`,
+    signatures: doc.account.timestamps.filter(t => !t.isZero()).length,
     lastUpdated: convertToLocaleDate(
       Math.max(doc.account.createdAt.toNumber(), ...doc.account.timestamps.map(t => t.toNumber()))
     ),
