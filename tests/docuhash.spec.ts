@@ -46,8 +46,7 @@ describe('hashusign', async () => {
               .accounts({
                 authority: authority.publicKey,
                 payer: authority.publicKey,
-                clerk,
-                systemProgram: web3.SystemProgram.programId
+                clerk
               })
               .signers([authority])
               .simulate()
@@ -64,8 +63,7 @@ describe('hashusign', async () => {
             .accounts({
               authority: authority.publicKey,
               payer: authority.publicKey,
-              clerk,
-              systemProgram: web3.SystemProgram.programId
+              clerk
             })
             .signers([authority])
             .rpc()
@@ -114,8 +112,7 @@ describe('hashusign', async () => {
                 authority: authority.publicKey,
                 payer: authority.publicKey,
                 clerk,
-                document: badDoc,
-                systemProgram: web3.SystemProgram.programId
+                document: badDoc
               })
               .signers([authority])
               .simulate()
@@ -130,8 +127,7 @@ describe('hashusign', async () => {
                 authority: authority.publicKey,
                 payer: authority.publicKey,
                 clerk,
-                document,
-                systemProgram: web3.SystemProgram.programId
+                document
               })
               .signers([authority])
               .simulate()
@@ -149,8 +145,7 @@ describe('hashusign', async () => {
                 authority: authority.publicKey,
                 payer: authority.publicKey,
                 clerk,
-                document,
-                systemProgram: web3.SystemProgram.programId
+                document
               })
               .signers([authority])
               .simulate()
@@ -171,8 +166,7 @@ describe('hashusign', async () => {
               authority: authority.publicKey,
               payer: authority.publicKey,
               clerk,
-              document,
-              systemProgram: web3.SystemProgram.programId
+              document
             })
             .signers([authority])
             .rpc()
@@ -236,8 +230,7 @@ describe('hashusign', async () => {
                 authority: authority.publicKey,
                 payer: authority.publicKey,
                 clerk,
-                document: newDocKey,
-                systemProgram: web3.SystemProgram.programId
+                document: newDocKey
               })
               .signers([authority])
               .simulate()
@@ -324,11 +317,7 @@ describe('hashusign', async () => {
                 clerk,
                 document,
                 mint,
-                nftTokenAccount,
-                associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-                tokenProgram: TOKEN_PROGRAM_ID,
-                systemProgram: web3.SystemProgram.programId,
-                rent: web3.SYSVAR_RENT_PUBKEY
+                nftTokenAccount
               })
               .signers([authority])
               .simulate()
@@ -363,11 +352,7 @@ describe('hashusign', async () => {
               clerk,
               document,
               mint,
-              nftTokenAccount,
-              associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-              tokenProgram: TOKEN_PROGRAM_ID,
-              systemProgram: web3.SystemProgram.programId,
-              rent: web3.SYSVAR_RENT_PUBKEY
+              nftTokenAccount
             })
             .signers([authority])
             .rpc()
@@ -425,8 +410,7 @@ describe('hashusign', async () => {
               payer: authority.publicKey,
               receiver: authority.publicKey,
               oldClerk: clerk,
-              stagedClerk,
-              systemProgram: web3.SystemProgram.programId
+              stagedClerk
             })
             .signers([authority])
             .rpc()
@@ -459,8 +443,7 @@ describe('hashusign', async () => {
               payer: authority.publicKey,
               receiver: authority.publicKey,
               stagedClerk,
-              newClerk: clerk,
-              systemProgram: web3.SystemProgram.programId
+              newClerk: clerk
             })
             .signers([authority])
             .rpc()

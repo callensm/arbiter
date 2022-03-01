@@ -1,6 +1,5 @@
 import { UserAddOutlined } from '@ant-design/icons'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { SystemProgram } from '@solana/web3.js'
 import { Button, Card, Typography } from 'antd'
 import { useCallback, useState, type FunctionComponent } from 'react'
 import { useClerk, useProgram } from '../../lib/context'
@@ -25,8 +24,7 @@ const AccountDetailsPanel: FunctionComponent = () => {
         .accounts({
           authority: publicKey,
           clerk: clerk.publicKey,
-          payer: publicKey,
-          systemProgram: SystemProgram.programId
+          payer: publicKey
         })
         .transaction()
 
@@ -54,8 +52,7 @@ const AccountDetailsPanel: FunctionComponent = () => {
           authority: publicKey,
           payer: publicKey,
           clerk: clerk.publicKey,
-          document: documentPublicKey,
-          systemProgram: SystemProgram.programId
+          document: documentPublicKey
         })
         .transaction()
 
