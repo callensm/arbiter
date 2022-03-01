@@ -2,14 +2,17 @@ import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
 import { Col, Layout, Row } from 'antd'
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import type { CSSProperties } from 'react'
+import { CSSProperties } from 'react'
 import AccountDetailsPanel from '../components/AccountDetailsPanel'
 import DocumentsTable from '../components/DocumentsTable'
 import Header from '../components/Header'
+import { useClerk } from '../lib/context'
 
 const { Content } = Layout
 
 const HomePage: NextPage = () => {
+  const { rent } = useClerk()
+
   return (
     <>
       <Head>
@@ -23,6 +26,7 @@ const HomePage: NextPage = () => {
           <Row style={gridRowStyle}>
             <Col span={24}>
               <AccountDetailsPanel />
+              {rent} SOL
             </Col>
           </Row>
           <Row style={gridRowStyle}>

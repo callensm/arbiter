@@ -20,14 +20,15 @@ const AccountDetailsPanel: FunctionComponent = () => {
     setLoading(true)
 
     try {
-      const tx = program.transaction.initClerk(5, {
-        accounts: {
+      const tx = await program.methods
+        .initClerk(5)
+        .accounts({
           authority: publicKey,
           clerk: clerk.publicKey,
           payer: publicKey,
           systemProgram: SystemProgram.programId
-        }
-      })
+        })
+        .transaction()
 
       const sig = await sendTransaction(tx, program.provider.connection)
       await program.provider.connection.confirmTransaction(sig, 'confirmed')
@@ -47,15 +48,16 @@ const AccountDetailsPanel: FunctionComponent = () => {
       const title = 'My First Document'
       const [documentPublicKey] = await getDocumentProgramAddress(title, publicKey)
 
-      const tx = program.transaction.initDocument(title, [publicKey], {
-        accounts: {
+      const tx = await program.methods
+        .initDocument(title, [publicKey])
+        .accounts({
           authority: publicKey,
           payer: publicKey,
           clerk: clerk.publicKey,
           document: documentPublicKey,
           systemProgram: SystemProgram.programId
-        }
-      })
+        })
+        .transaction()
 
       const sig = await sendTransaction(tx, program.provider.connection)
       await program.provider.connection.confirmTransaction(sig, 'confirmed')

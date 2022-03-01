@@ -41,15 +41,16 @@ describe('hashusign', async () => {
       describe('except when it should fail because', () => {
         it('the document limit provided is zero', () => {
           assert.isRejected(
-            program.simulate.initClerk(0, {
-              accounts: {
+            program.methods
+              .initClerk(0)
+              .accounts({
                 authority: authority.publicKey,
                 payer: authority.publicKey,
                 clerk,
                 systemProgram: web3.SystemProgram.programId
-              },
-              signers: [authority]
-            })
+              })
+              .signers([authority])
+              .simulate()
           )
         })
       })
@@ -58,15 +59,16 @@ describe('hashusign', async () => {
         let clerkData: ProgramAccount<any>
 
         before(async () => {
-          await program.rpc.initClerk(1, {
-            accounts: {
+          await program.methods
+            .initClerk(1)
+            .accounts({
               authority: authority.publicKey,
               payer: authority.publicKey,
               clerk,
               systemProgram: web3.SystemProgram.programId
-            },
-            signers: [authority]
-          })
+            })
+            .signers([authority])
+            .rpc()
         })
 
         it('the clerk is initialized', async () => {
@@ -103,54 +105,55 @@ describe('hashusign', async () => {
           )
 
           assert.isRejected(
-            program.simulate.initDocument(
-              '',
-              participants.map(p => p.publicKey),
-              {
-                accounts: {
-                  authority: authority.publicKey,
-                  payer: authority.publicKey,
-                  clerk,
-                  document: badDoc,
-                  systemProgram: web3.SystemProgram.programId
-                },
-                signers: [authority]
-              }
-            )
+            program.methods
+              .initDocument(
+                '',
+                participants.map(p => p.publicKey)
+              )
+              .accounts({
+                authority: authority.publicKey,
+                payer: authority.publicKey,
+                clerk,
+                document: badDoc,
+                systemProgram: web3.SystemProgram.programId
+              })
+              .signers([authority])
+              .simulate()
           )
         })
 
         it('the participants public key array is empty', () => {
           assert.isRejected(
-            program.simulate.initDocument(title, [], {
-              accounts: {
+            program.methods
+              .initDocument(title, [])
+              .accounts({
                 authority: authority.publicKey,
                 payer: authority.publicKey,
                 clerk,
                 document,
                 systemProgram: web3.SystemProgram.programId
-              },
-              signers: [authority]
-            })
+              })
+              .signers([authority])
+              .simulate()
           )
         })
 
         it('there are duplicate participant public keys', () => {
           assert.isRejected(
-            program.simulate.initDocument(
-              title,
-              [...participants.map(p => p.publicKey), participants[0].publicKey],
-              {
-                accounts: {
-                  authority: authority.publicKey,
-                  payer: authority.publicKey,
-                  clerk,
-                  document,
-                  systemProgram: web3.SystemProgram.programId
-                },
-                signers: [authority]
-              }
-            )
+            program.methods
+              .initDocument(title, [
+                ...participants.map(p => p.publicKey),
+                participants[0].publicKey
+              ])
+              .accounts({
+                authority: authority.publicKey,
+                payer: authority.publicKey,
+                clerk,
+                document,
+                systemProgram: web3.SystemProgram.programId
+              })
+              .signers([authority])
+              .simulate()
           )
         })
       })
@@ -159,20 +162,20 @@ describe('hashusign', async () => {
         let docData: ProgramAccount<any>
 
         before(async () => {
-          await program.rpc.initDocument(
-            title,
-            participants.map(p => p.publicKey),
-            {
-              accounts: {
-                authority: authority.publicKey,
-                payer: authority.publicKey,
-                clerk,
-                document,
-                systemProgram: web3.SystemProgram.programId
-              },
-              signers: [authority]
-            }
-          )
+          await program.methods
+            .initDocument(
+              title,
+              participants.map(p => p.publicKey)
+            )
+            .accounts({
+              authority: authority.publicKey,
+              payer: authority.publicKey,
+              clerk,
+              document,
+              systemProgram: web3.SystemProgram.programId
+            })
+            .signers([authority])
+            .rpc()
         })
 
         it('the new document is initialized', async () => {
@@ -224,20 +227,20 @@ describe('hashusign', async () => {
           )
 
           assert.isRejected(
-            program.simulate.initDocument(
-              newTitle,
-              participants.map(p => p.publicKey),
-              {
-                accounts: {
-                  authority: authority.publicKey,
-                  payer: authority.publicKey,
-                  clerk,
-                  document: newDocKey,
-                  systemProgram: web3.SystemProgram.programId
-                },
-                signers: [authority]
-              }
-            )
+            program.methods
+              .initDocument(
+                newTitle,
+                participants.map(p => p.publicKey)
+              )
+              .accounts({
+                authority: authority.publicKey,
+                payer: authority.publicKey,
+                clerk,
+                document: newDocKey,
+                systemProgram: web3.SystemProgram.programId
+              })
+              .signers([authority])
+              .simulate()
           )
         })
       })
@@ -248,13 +251,14 @@ describe('hashusign', async () => {
         it('the participant is not associated with the document', () => {
           const random = web3.Keypair.generate()
           assert.isRejected(
-            program.simulate.addSignature({
-              accounts: {
+            program.methods
+              .addSignature()
+              .accounts({
                 participant: random.publicKey,
                 document
-              },
-              signers: [random]
-            })
+              })
+              .signers([random])
+              .simulate()
           )
         })
       })
@@ -263,13 +267,14 @@ describe('hashusign', async () => {
         let docData: any
 
         before(async () => {
-          await program.rpc.addSignature({
-            accounts: {
+          await program.methods
+            .addSignature()
+            .accounts({
               participant: participants[2].publicKey,
               document
-            },
-            signers: [participants[2]]
-          })
+            })
+            .signers([participants[2]])
+            .rpc()
 
           docData = await program.account.document.fetch(document)
         })
@@ -280,13 +285,14 @@ describe('hashusign', async () => {
 
         it('the same participant can not submit subsequent signatures on the same document', () => {
           assert.isRejected(
-            program.simulate.addSignature({
-              accounts: {
+            program.methods
+              .addSignature()
+              .accounts({
                 participant: participants[2].publicKey,
                 document
-              },
-              signers: [participants[2]]
-            })
+              })
+              .signers([participants[2]])
+              .simulate()
           )
         })
       })
@@ -310,8 +316,9 @@ describe('hashusign', async () => {
       describe('it will fail when', () => {
         it('not all participants have signature timestamps on the document', () => {
           assert.isRejected(
-            program.simulate.finalize({
-              accounts: {
+            program.methods
+              .finalize()
+              .accounts({
                 authority: authority.publicKey,
                 payer: authority.publicKey,
                 clerk,
@@ -322,22 +329,23 @@ describe('hashusign', async () => {
                 tokenProgram: TOKEN_PROGRAM_ID,
                 systemProgram: web3.SystemProgram.programId,
                 rent: web3.SYSVAR_RENT_PUBKEY
-              },
-              signers: [authority]
-            })
+              })
+              .signers([authority])
+              .simulate()
           )
         })
 
         after(async () => {
           await Promise.all(
             [participants[0], participants[1], participants[3]].map(p =>
-              program.rpc.addSignature({
-                accounts: {
+              program.methods
+                .addSignature()
+                .accounts({
                   participant: p.publicKey,
                   document
-                },
-                signers: [p]
-              })
+                })
+                .signers([p])
+                .rpc()
             )
           )
         })
@@ -347,8 +355,9 @@ describe('hashusign', async () => {
         let docData: any
 
         before(async () => {
-          await program.rpc.finalize({
-            accounts: {
+          await program.methods
+            .finalize()
+            .accounts({
               authority: authority.publicKey,
               payer: authority.publicKey,
               clerk,
@@ -359,9 +368,9 @@ describe('hashusign', async () => {
               tokenProgram: TOKEN_PROGRAM_ID,
               systemProgram: web3.SystemProgram.programId,
               rent: web3.SYSVAR_RENT_PUBKEY
-            },
-            signers: [authority]
-          })
+            })
+            .signers([authority])
+            .rpc()
 
           docData = await program.account.document.fetch(document)
         })
@@ -409,17 +418,18 @@ describe('hashusign', async () => {
             program.programId
           )
 
-          await program.rpc.stageUpgrade({
-            accounts: {
+          await program.methods
+            .stageUpgrade()
+            .accounts({
               authority: authority.publicKey,
               payer: authority.publicKey,
               receiver: authority.publicKey,
               oldClerk: clerk,
               stagedClerk,
               systemProgram: web3.SystemProgram.programId
-            },
-            signers: [authority]
-          })
+            })
+            .signers([authority])
+            .rpc()
         })
 
         describe('which will', () => {
@@ -442,17 +452,18 @@ describe('hashusign', async () => {
         let newClerkData: any
 
         before(async () => {
-          await program.rpc.upgradeLimit(2, {
-            accounts: {
+          await program.methods
+            .upgradeLimit(2)
+            .accounts({
               authority: authority.publicKey,
               payer: authority.publicKey,
               receiver: authority.publicKey,
               stagedClerk,
               newClerk: clerk,
               systemProgram: web3.SystemProgram.programId
-            },
-            signers: [authority]
-          })
+            })
+            .signers([authority])
+            .rpc()
         })
 
         it('reinitialize their clerk account', async () => {
