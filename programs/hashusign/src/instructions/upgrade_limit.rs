@@ -57,7 +57,7 @@ pub struct UpgradeLimit<'info> {
 impl<'info> UpgradeLimit<'info> {
     /// Instruction prevalidation for `upgrade_amount`.
     pub fn prevalidate(_ctx: &Context<Self>, increase_amount: u8) -> Result<()> {
-        require!(increase_amount > 0, ErrorCode::ClerkUpgradeAmountIsZero);
+        require_gt!(increase_amount, 0, ErrorCode::ClerkUpgradeAmountIsZero);
         Ok(())
     }
 }

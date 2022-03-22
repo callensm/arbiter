@@ -34,6 +34,12 @@ impl<'info> AddSignature<'info> {
     }
 }
 
+#[event]
+pub struct SignatureAdded {
+    document: Pubkey,
+    signer: Pubkey,
+}
+
 /// Instruction entrypoint handler for `add_signature`.
 pub fn add_signature_handler(ctx: Context<AddSignature>) -> Result<()> {
     let AddSignature {
@@ -42,5 +48,11 @@ pub fn add_signature_handler(ctx: Context<AddSignature>) -> Result<()> {
     } = ctx.accounts;
 
     document.try_sign(participant)?;
+
+    emit!(SignatureAdded {
+        document: document.key(),
+        signer: participant.key(),
+    });
+
     Ok(())
 }

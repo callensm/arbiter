@@ -7,7 +7,7 @@ import {
   web3,
   workspace
 } from '@project-serum/anchor'
-import { ASSOCIATED_TOKEN_PROGRAM_ID, MintLayout, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token'
+import { MintLayout, getAssociatedTokenAddress } from '@solana/spl-token'
 import { assert, use as chaiUse } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { Hashusign } from '../target/types/hashusign'
@@ -298,12 +298,7 @@ describe('hashusign', async () => {
           program.programId
         )
 
-        nftTokenAccount = await Token.getAssociatedTokenAddress(
-          ASSOCIATED_TOKEN_PROGRAM_ID,
-          TOKEN_PROGRAM_ID,
-          mint,
-          authority.publicKey
-        )
+        nftTokenAccount = await getAssociatedTokenAddress(mint, authority.publicKey)
       })
 
       describe('it will fail when', () => {

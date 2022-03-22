@@ -5,7 +5,6 @@
   },
   "dependencies": {
     "@ant-design/icons": "^4.7.0",
-    "@hashusign/wasm": "file:../wasm/pkg",
     "@project-serum/anchor": "^0.22.0",
     "@solana/wallet-adapter-base": "^0.9.3",
     "@solana/wallet-adapter-react": "^0.15.3",

@@ -1,8 +1,4 @@
 [workspace]
 members = [
-    "programs/*",
-    "wasm"
+    "programs/*"
 ]
-
-[profile.release.package.wasm]
-opt-level = "z"

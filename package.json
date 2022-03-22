@@ -1,6 +1,5 @@
 {
   "scripts": {
-    "build:wasm": "wasm-pack build --release --scope hashusign ./wasm",
     "fmt": "prettier --check .",
     "fmt:fix": "prettier --write .",
     "idl": "cp target/types/hashusign.ts app/lib/idl.ts",
@@ -8,8 +7,9 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "@project-serum/anchor": "^0.22.0",
-    "@solana/spl-token": "^0.1.8"
+    "@project-serum/anchor": "^0.23.0",
+    "@solana/buffer-layout": "^4.0.0",
+    "@solana/spl-token": "^0.2.0"
   },
   "devDependencies": {
     "@types/chai": "^4.3.0",

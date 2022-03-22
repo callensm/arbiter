@@ -37,7 +37,7 @@ pub struct InitClerk<'info> {
 impl<'info> InitClerk<'info> {
     /// Instruction prevalidation for `init_clerk`.
     pub fn prevalidate(_ctx: &Context<Self>, limit: u8) -> Result<()> {
-        require!(limit > 0, ErrorCode::ClerkLimitIsZero);
+        require_gt!(limit, 0, ErrorCode::ClerkLimitIsZero);
         Ok(())
     }
 }
