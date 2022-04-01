@@ -6,13 +6,10 @@ import { CSSProperties } from 'react'
 import AccountDetailsPanel from '../components/AccountDetailsPanel'
 import DocumentsTable from '../components/DocumentsTable'
 import Header from '../components/Header'
-import { useClerk } from '../lib/context'
 
 const { Content } = Layout
 
 const HomePage: NextPage = () => {
-  const { rent } = useClerk()
-
   return (
     <>
       <Head>
@@ -26,7 +23,6 @@ const HomePage: NextPage = () => {
           <Row style={gridRowStyle}>
             <Col span={24}>
               <AccountDetailsPanel />
-              {rent} SOL
             </Col>
           </Row>
           <Row style={gridRowStyle}>

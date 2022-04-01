@@ -1,7 +1,8 @@
 import type { IdlAccounts, ProgramAccount } from '@project-serum/anchor'
 import { PublicKey } from '@solana/web3.js'
 import { createContext, useContext, useEffect, useState, type FunctionComponent } from 'react'
-import { useClerk, useProgram } from '.'
+import { useClerk } from './clerk'
+import { useProgram } from './program'
 import type { Hashusign } from '../idl'
 import { notifyDocumentNotFoundError, notifyDocumentsFetchError } from '../notifications'
 

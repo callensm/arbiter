@@ -5,7 +5,7 @@ import {
   KeyOutlined,
   LinkOutlined
 } from '@ant-design/icons'
-import { Button, message, Table, Tooltip, type TableColumnsType } from 'antd'
+import { Button, message, Table, type TableColumnsType } from 'antd'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useState, type FunctionComponent } from 'react'
@@ -57,9 +57,7 @@ const DocumentsTable: FunctionComponent = () => {
         key: 'finalized',
         render: (val: boolean) =>
           val ? (
-            <Tooltip title={val}>
-              <CheckCircleFilled style={{ color: '#45FF4A' }} />
-            </Tooltip>
+            <CheckCircleFilled style={{ color: '#45FF4A' }} />
           ) : (
             <CloseCircleFilled style={{ color: '#FF4545' }} />
           )

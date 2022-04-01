@@ -1,4 +1,3 @@
-import { createDocumentTitleSeed } from '@hashusign/wasm'
 import { BN, type ProgramAccount } from '@project-serum/anchor'
 import { PublicKey } from '@solana/web3.js'
 import { type Document, PROGRAM_ID } from './context'
@@ -28,6 +27,15 @@ const seeds: Record<'clerk' | 'document' | 'mint' | 'staged', string> = {
  */
 export const convertToLocaleDate = (unix: BN | number): string =>
   new Date((unix instanceof BN ? unix.toNumber() : unix) * 1000).toLocaleString()
+
+/**
+ * Truncates the argued document title to 32 bytes and converts
+ * the string into a `Buffer` to be used as an address seed.
+ * @param {string} title
+ * @returns {Buffer}
+ */
+const createDocumentTitleSeed = (title: string): Buffer =>
+  title.length > 32 ? Buffer.from(title.slice(0, 32)) : Buffer.from(title)
 
 /**
  * Converts the argued array of document program accounts into

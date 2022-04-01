@@ -5,15 +5,13 @@ import { useProgram } from './program'
 import type { Hashusign } from '../idl'
 import { getClerkProgramAddress } from '../util'
 import { notifyClerkFetchError } from '../notifications'
-import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js'
-import { getClerkSpace } from '@hashusign/wasm'
+import { PublicKey } from '@solana/web3.js'
 
 export type Clerk = IdlAccounts<Hashusign>['clerk']
 
 export interface ClerkContextState {
   data: Clerk | null
   publicKey: PublicKey | null
-  rent: number
 }
 
 export const ClerkContext = createContext<ClerkContextState>({} as ClerkContextState)
@@ -24,7 +22,6 @@ export const ClerkProvider: FunctionComponent = ({ children }) => {
 
   const [publicKey, setPublicKey] = useState<PublicKey | null>(null)
   const [data, setData] = useState<Clerk | null>(null)
-  const [rent, setRent] = useState(0)
 
   useEffect(() => {
     if (!walletPublicKey) return
@@ -37,15 +34,7 @@ export const ClerkProvider: FunctionComponent = ({ children }) => {
       .catch(notifyClerkFetchError)
   }, [program, walletPublicKey])
 
-  useEffect(() => {
-    if (!data) return
-    program.provider.connection
-      .getMinimumBalanceForRentExemption(getClerkSpace(data.documents.length))
-      .then(amt => setRent(amt / LAMPORTS_PER_SOL))
-      .catch(console.error)
-  }, [data])
-
-  return <ClerkContext.Provider value={{ data, publicKey, rent }}>{children}</ClerkContext.Provider>
+  return <ClerkContext.Provider value={{ data, publicKey }}>{children}</ClerkContext.Provider>
 }
 
 /**
