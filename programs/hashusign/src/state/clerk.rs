@@ -1,4 +1,6 @@
 use anchor_lang::prelude::*;
+#[cfg(any(test, feature = "cli"))]
+use serde::ser::{Serialize, SerializeStruct, Serializer};
 
 use crate::error::ErrorCode;
 use crate::seeds;
@@ -58,5 +60,62 @@ impl Clerk {
 
         self.documents[i] = document;
         Ok(())
+    }
+}
+
+#[cfg(any(test, feature = "cli"))]
+impl Serialize for Clerk {
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut s = serializer.serialize_struct("Clerk", 3)?;
+        s.serialize_field("authority", &self.authority.to_string())?;
+        s.serialize_field(
+            "documents",
+            &self
+                .documents
+                .iter()
+                .map(|d| d.to_string())
+                .collect::<Vec<String>>(),
+        )?;
+        s.serialize_field("upgrades", &self.upgrades)?;
+        s.end()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_test::{assert_ser_tokens, Token};
+
+    use super::*;
+
+    #[test]
+    fn clerk_serialization() {
+        assert_ser_tokens(
+            &Clerk {
+                authority: Pubkey::default(),
+                documents: vec![Pubkey::default(); 3],
+                upgrades: 3,
+                bump: [0],
+            },
+            &[
+                Token::Struct {
+                    name: "Clerk",
+                    len: 3,
+                },
+                Token::Str("authority"),
+                Token::Str("11111111111111111111111111111111"),
+                Token::Str("documents"),
+                Token::Seq { len: Some(3) },
+                Token::Str("11111111111111111111111111111111"),
+                Token::Str("11111111111111111111111111111111"),
+                Token::Str("11111111111111111111111111111111"),
+                Token::SeqEnd,
+                Token::Str("upgrades"),
+                Token::U8(3),
+                Token::StructEnd,
+            ],
+        );
     }
 }

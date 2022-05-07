@@ -14,8 +14,14 @@ no-idl = []
 no-log-ix-name = []
 cpi = ["no-entrypoint"]
 default = []
+cli = ["no-entrypoint", "serde"]
 
 [dependencies]
 anchor-lang = "0.24.2"
 anchor-spl = "0.24.2"
+serde = { version = "1.0", optional = true }
 spl-token = "3.2.0"
+
+[dev-dependencies]
+serde = "1.0"
+serde_test = "1.0"

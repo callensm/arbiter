@@ -1,5 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, TokenAccount};
+#[cfg(any(test, feature = "cli"))]
+use serde::ser::{Serialize, SerializeStruct, Serializer};
 
 use crate::error::ErrorCode;
 use crate::seeds;
@@ -113,5 +115,83 @@ impl Document {
             .iter()
             .position(|p| p == participant)
             .ok_or_else(|| error!(ErrorCode::ParticipantNotAssociated))
+    }
+}
+
+#[cfg(any(test, feature = "cli"))]
+impl Serialize for Document {
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut s = serializer.serialize_struct("Document", 8)?;
+        s.serialize_field("authority", &self.authority.to_string())?;
+        s.serialize_field("mint", &self.mint.to_string())?;
+        s.serialize_field("nft", &self.nft.to_string())?;
+        s.serialize_field("title", &self.title)?;
+        s.serialize_field("createdAt", &self.created_at)?;
+        s.serialize_field(
+            "participants",
+            &self
+                .participants
+                .iter()
+                .map(|p| p.to_string())
+                .collect::<Vec<String>>(),
+        )?;
+        s.serialize_field("timestamps", &self.timestamps)?;
+        s.serialize_field("finalizationTimestamp", &self.finalization_timestamp)?;
+        s.end()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_test::{assert_ser_tokens, Token};
+
+    use super::*;
+
+    #[test]
+    fn document_serialization() {
+        assert_ser_tokens(
+            &Document {
+                authority: Pubkey::default(),
+                mint: Pubkey::default(),
+                nft: Pubkey::default(),
+                title: "Test".into(),
+                created_at: 0,
+                participants: vec![Pubkey::default()],
+                timestamps: vec![0],
+                finalization_timestamp: 0,
+                mint_bump: 0,
+                bump: [0],
+            },
+            &[
+                Token::Struct {
+                    name: "Document",
+                    len: 8,
+                },
+                Token::Str("authority"),
+                Token::Str("11111111111111111111111111111111"),
+                Token::Str("mint"),
+                Token::Str("11111111111111111111111111111111"),
+                Token::Str("nft"),
+                Token::Str("11111111111111111111111111111111"),
+                Token::Str("title"),
+                Token::Str("Test"),
+                Token::Str("createdAt"),
+                Token::U64(0),
+                Token::Str("participants"),
+                Token::Seq { len: Some(1) },
+                Token::Str("11111111111111111111111111111111"),
+                Token::SeqEnd,
+                Token::Str("timestamps"),
+                Token::Seq { len: Some(1) },
+                Token::U64(0),
+                Token::SeqEnd,
+                Token::Str("finalizationTimestamp"),
+                Token::U64(0),
+                Token::StructEnd,
+            ],
+        );
     }
 }
