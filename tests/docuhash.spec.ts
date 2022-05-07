@@ -2,7 +2,7 @@ import {
   BN,
   Program,
   ProgramAccount,
-  Provider,
+  AnchorProvider as Provider,
   setProvider,
   web3,
   workspace
@@ -19,7 +19,7 @@ describe('hashusign', async () => {
 
   const program = workspace.Hashusign as Program<Hashusign>
 
-  const authority = (program.provider.wallet as any).payer as web3.Keypair
+  const authority = ((program.provider as Provider).wallet as any).payer as web3.Keypair
   const participants = [...Array(4)].map(() => web3.Keypair.generate())
 
   const title = 'My Test Document'

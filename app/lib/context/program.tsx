@@ -1,4 +1,4 @@
-import { Program, Provider } from '@project-serum/anchor'
+import { Program, AnchorProvider } from '@project-serum/anchor'
 import { type AnchorWallet, useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { PublicKey } from '@solana/web3.js'
 import { createContext, type FunctionComponent, useContext, useMemo } from 'react'
@@ -26,7 +26,7 @@ export const ProgramProvider: FunctionComponent = ({ children }) => {
   )
 
   const program = useMemo(() => {
-    const provider = new Provider(connection, anchorWallet as AnchorWallet, {})
+    const provider = new AnchorProvider(connection, anchorWallet as AnchorWallet, {})
     return new Program<Hashusign>(IDL, PROGRAM_ID, provider)
   }, [connection, anchorWallet])
 

@@ -22,7 +22,7 @@ const seeds: Record<'clerk' | 'document' | 'mint' | 'staged', string> = {
 /**
  * Convert the argued `BN` as a UNIX timestamp into the locale
  * date-time string for the user.
- * @param {BN} bn
+ * @param {BN | number} unix
  * @returns {string}
  */
 export const convertToLocaleDate = (unix: BN | number): string =>
