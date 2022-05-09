@@ -10,9 +10,5 @@ module.exports = withLess({
     }
   },
   reactStrictMode: true,
-  poweredByHeader: false,
-  webpack: config => {
-    config.experiments.asyncWebAssembly = true
-    return config
-  }
+  poweredByHeader: false
 })

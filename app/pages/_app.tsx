@@ -13,7 +13,7 @@ const DynamicWalletConnectionProvider = dynamic(
   }
 )
 
-const HasuSignApp: FunctionComponent<AppProps> = ({ Component, pageProps }) => {
+const HashuSignApp: FunctionComponent<AppProps> = ({ Component, pageProps }) => {
   return (
     <DynamicWalletConnectionProvider test>
       <ProgramProvider>
@@ -27,4 +27,4 @@ const HasuSignApp: FunctionComponent<AppProps> = ({ Component, pageProps }) => {
   )
 }
 
-export default HasuSignApp
+export default HashuSignApp
