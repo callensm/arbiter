@@ -30,15 +30,19 @@ const AccountDetailsPanel: FunctionComponent = () => {
 
       await program.provider.connection.confirmTransaction(sig, 'confirmed')
       notifySolScan(sig, 'devnet')
+
+      await clerk.refresh()
     } catch (err) {
       notifyTransactionError(err as Error)
     } finally {
       setLoading(false)
     }
-  }, [program, clerk.publicKey, connected, publicKey])
+  }, [program, clerk, connected, publicKey])
 
   const handleNewDocument = useCallback(async () => {
     if (!connected || !publicKey || !clerk.publicKey) return
+
+    setLoading(true)
 
     try {
       const title = 'My First Document'
@@ -56,17 +60,23 @@ const AccountDetailsPanel: FunctionComponent = () => {
 
       await program.provider.connection.confirmTransaction(sig, 'confirmed')
       notifySolScan(sig, 'devnet')
+
+      await clerk.refresh()
     } catch (err) {
       notifyTransactionError(err as Error)
+    } finally {
+      setLoading(false)
     }
-  }, [program, clerk.publicKey, connected, publicKey])
+  }, [program, clerk, connected, publicKey])
 
   return (
     <Card style={{ borderRadius: 10 }}>
       {clerk.publicKey && clerk.data ? (
         <>
           <span>{clerk.publicKey.toBase58()}</span>
-          <Button onClick={handleNewDocument}>New Document</Button>
+          <Button loading={loading} onClick={handleNewDocument}>
+            New Document
+          </Button>
         </>
       ) : (
         <div style={{ textAlign: 'center' }}>

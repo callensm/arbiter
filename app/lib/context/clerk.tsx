@@ -1,6 +1,13 @@
 import type { IdlAccounts } from '@project-serum/anchor'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { createContext, type FunctionComponent, useContext, useEffect, useState } from 'react'
+import {
+  createContext,
+  type FunctionComponent,
+  useContext,
+  useEffect,
+  useState,
+  useCallback
+} from 'react'
 import { useProgram } from './program'
 import type { Hashusign } from '../idl'
 import { getClerkProgramAddress } from '../util'
@@ -12,6 +19,7 @@ export type Clerk = IdlAccounts<Hashusign>['clerk']
 export interface ClerkContextState {
   data: Clerk | null
   publicKey: PublicKey | null
+  refresh: () => Promise<void>
 }
 
 export const ClerkContext = createContext<ClerkContextState>({} as ClerkContextState)
@@ -23,18 +31,27 @@ export const ClerkProvider: FunctionComponent = ({ children }) => {
   const [publicKey, setPublicKey] = useState<PublicKey | null>(null)
   const [data, setData] = useState<Clerk | null>(null)
 
-  useEffect(() => {
+  const refresh = useCallback(async () => {
     if (!walletPublicKey) return
-    getClerkProgramAddress(walletPublicKey)
-      .then(async ([clerkKey]) => {
-        setPublicKey(clerkKey)
-        const c = await program.account.clerk.fetchNullable(clerkKey)
-        if (c) setData(c as Clerk)
-      })
-      .catch(notifyClerkFetchError)
+
+    try {
+      const [pk] = await getClerkProgramAddress(walletPublicKey)
+      setPublicKey(pk)
+
+      const c = await program.account.clerk.fetchNullable(pk)
+      if (c) setData(c as Clerk)
+    } catch (err) {
+      notifyClerkFetchError(err as Error)
+    }
   }, [program, walletPublicKey])
 
-  return <ClerkContext.Provider value={{ data, publicKey }}>{children}</ClerkContext.Provider>
+  useEffect(() => {
+    refresh()
+  }, [refresh])
+
+  return (
+    <ClerkContext.Provider value={{ data, publicKey, refresh }}>{children}</ClerkContext.Provider>
+  )
 }
 
 /**
