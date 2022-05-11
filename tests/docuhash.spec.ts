@@ -7,7 +7,6 @@ import {
   web3,
   workspace
 } from '@project-serum/anchor'
-import { MintLayout, getAssociatedTokenAddress } from '@solana/spl-token'
 import { assert, use as chaiUse } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { Hashusign } from '../target/types/hashusign'
@@ -26,8 +25,6 @@ describe('hashusign', async () => {
   let clerk: web3.PublicKey
   let stagedClerk: web3.PublicKey
   let document: web3.PublicKey
-  let mint: web3.PublicKey
-  let nftTokenAccount: web3.PublicKey
 
   describe('users of the program should be able to', () => {
     describe('invoke `init_clerk` to create a Clerk program account for themselves', () => {
@@ -183,7 +180,6 @@ describe('hashusign', async () => {
         describe('with its account data properly set', () => {
           it('public key references', () => {
             assert.isTrue(docData.account.authority.equals(authority.publicKey))
-            assert.isTrue(docData.account.mint.equals(web3.PublicKey.default))
           })
 
           it('participants and timestamp defaults', () => {
@@ -205,7 +201,6 @@ describe('hashusign', async () => {
 
           it('additional state data fields', () => {
             assert.equal(docData.account.finalizationTimestamp.toNumber(), 0)
-            assert.equal(docData.account.mintBump, 0)
           })
         })
 
@@ -292,15 +287,6 @@ describe('hashusign', async () => {
     })
 
     describe('the creator can invoke `finalize` to complete a document and mint the NFT', () => {
-      before(async () => {
-        ;[mint] = await web3.PublicKey.findProgramAddress(
-          [Buffer.from('mint'), document.toBytes()],
-          program.programId
-        )
-
-        nftTokenAccount = await getAssociatedTokenAddress(mint, authority.publicKey)
-      })
-
       describe('it will fail when', () => {
         it('not all participants have signature timestamps on the document', () => {
           assert.isRejected(
@@ -310,9 +296,7 @@ describe('hashusign', async () => {
                 authority: authority.publicKey,
                 payer: authority.publicKey,
                 clerk,
-                document,
-                mint,
-                nftTokenAccount
+                document
               })
               .signers([authority])
               .simulate()
@@ -345,9 +329,7 @@ describe('hashusign', async () => {
               authority: authority.publicKey,
               payer: authority.publicKey,
               clerk,
-              document,
-              mint,
-              nftTokenAccount
+              document
             })
             .signers([authority])
             .rpc()
@@ -355,34 +337,8 @@ describe('hashusign', async () => {
           docData = await program.account.document.fetch(document)
         })
 
-        it('the mint and NFT token account public keys are set in the account data', () => {
-          assert.isTrue(docData.mint.equals(mint))
-          assert.isTrue(docData.nft.equals(nftTokenAccount))
-        })
-
         it('it will have a non-zero finalization timestamp in account data', () => {
           assert.notEqual(docData.finalizationTimestamp.toNumber(), 0)
-        })
-
-        it('the document creator will have an NFT token account for the document mint', async () => {
-          const accs = await program.provider.connection.getTokenAccountsByOwner(
-            authority.publicKey,
-            {
-              mint
-            }
-          )
-
-          assert.lengthOf(accs.value, 1)
-          assert.isTrue(accs.value[0].pubkey.equals(nftTokenAccount))
-
-          const balance = await program.provider.connection.getTokenAccountBalance(nftTokenAccount)
-          assert.equal(balance.value.amount, '1')
-        })
-
-        it('the document mint will no longer have a mint authority', async () => {
-          const info = await program.provider.connection.getAccountInfo(mint)
-          const m = MintLayout.decode(info.data)
-          assert.equal(m.mintAuthorityOption, 0)
         })
       })
     })

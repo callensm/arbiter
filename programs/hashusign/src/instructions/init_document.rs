@@ -96,14 +96,11 @@ pub fn init_document_handler(
 
     **document = Document {
         authority: authority.key(),
-        mint: Pubkey::default(),
-        nft: Pubkey::default(),
         title,
         created_at: now,
         participants,
         timestamps: vec![0; num_participants],
         finalization_timestamp: 0,
-        mint_bump: u8::default(),
         bump: [*bumps.get("document").unwrap()],
     };
 

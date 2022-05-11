@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Mint, TokenAccount};
 #[cfg(any(test, feature = "cli"))]
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
@@ -10,12 +9,6 @@ use crate::seeds;
 pub struct Document {
     /// The public key of the wallet that created the document.
     pub authority: Pubkey,
-
-    /// The public key of the NFT mint created for the document.
-    pub mint: Pubkey,
-
-    /// The public key of the NFT token account for the document.
-    pub nft: Pubkey,
 
     /// The immutable title of the document (cannot be changed after creation).
     pub title: String,
@@ -31,9 +24,6 @@ pub struct Document {
 
     /// Whether all public key participants have signed the document.
     pub finalization_timestamp: u64,
-
-    /// The token mint account bump nonce.
-    pub mint_bump: u8,
 
     /// The program account bump nonce.
     pub bump: [u8; 1],
@@ -65,19 +55,6 @@ impl Document {
     /// finalized by the creator.
     pub fn is_finalized(&self) -> bool {
         self.finalization_timestamp != 0
-    }
-
-    /// Sets the program account fields related to the finalized token
-    /// mint and NFT account associations.
-    pub fn set_nft_data<'a>(
-        &mut self,
-        mint: &Account<'a, Mint>,
-        token_account: &Account<'a, TokenAccount>,
-        bump: u8,
-    ) {
-        self.mint = mint.key();
-        self.nft = token_account.key();
-        self.mint_bump = bump;
     }
 
     /// The program account signer seeds for programmatic authority.
@@ -124,10 +101,8 @@ impl Serialize for Document {
     where
         S: Serializer,
     {
-        let mut s = serializer.serialize_struct("Document", 8)?;
+        let mut s = serializer.serialize_struct("Document", 6)?;
         s.serialize_field("authority", &self.authority.to_string())?;
-        s.serialize_field("mint", &self.mint.to_string())?;
-        s.serialize_field("nft", &self.nft.to_string())?;
         s.serialize_field("title", &self.title)?;
         s.serialize_field("createdAt", &self.created_at)?;
         s.serialize_field(
@@ -155,26 +130,19 @@ mod tests {
         assert_ser_tokens(
             &Document {
                 authority: Pubkey::default(),
-                mint: Pubkey::default(),
-                nft: Pubkey::default(),
                 title: "Test".into(),
                 created_at: 0,
                 participants: vec![Pubkey::default()],
                 timestamps: vec![0],
                 finalization_timestamp: 0,
-                mint_bump: 0,
                 bump: [0],
             },
             &[
                 Token::Struct {
                     name: "Document",
-                    len: 8,
+                    len: 6,
                 },
                 Token::Str("authority"),
-                Token::Str("11111111111111111111111111111111"),
-                Token::Str("mint"),
-                Token::Str("11111111111111111111111111111111"),
-                Token::Str("nft"),
                 Token::Str("11111111111111111111111111111111"),
                 Token::Str("title"),
                 Token::Str("Test"),

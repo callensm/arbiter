@@ -1,7 +1,4 @@
 use anchor_lang::prelude::*;
-use anchor_spl::associated_token::AssociatedToken;
-use anchor_spl::token::{mint_to, set_authority, Mint, MintTo, SetAuthority, Token, TokenAccount};
-use spl_token::instruction::AuthorityType;
 
 use crate::error::ErrorCode;
 use crate::seeds;
@@ -46,42 +43,8 @@ pub struct Finalize<'info> {
     )]
     pub document: Account<'info, Document>,
 
-    /// The NFT token mint that will be initialized in ownership of
-    /// the `document` program account.
-    #[account(
-        init,
-        payer = payer,
-        seeds = [
-            seeds::MINT,
-            document.key().as_ref(),
-        ],
-        bump,
-        mint::decimals = 0,
-        mint::authority = document,
-    )]
-    pub mint: Account<'info, Mint>,
-
-    /// The token account that will hold the minted NFT for the `authority`
-    /// after the `document` has been verified as final.
-    #[account(
-        init,
-        payer = payer,
-        associated_token::mint = mint,
-        associated_token::authority = authority,
-    )]
-    pub nft_token_account: Account<'info, TokenAccount>,
-
-    /// The global associated token program.
-    pub associated_token_program: Program<'info, AssociatedToken>,
-
-    /// The global token program.
-    pub token_program: Program<'info, Token>,
-
     /// The global system program.
     pub system_program: Program<'info, System>,
-
-    /// The global rent system variable.
-    pub rent: Sysvar<'info, Rent>,
 }
 
 impl<'info> Finalize<'info> {
@@ -94,46 +57,11 @@ impl<'info> Finalize<'info> {
 /// Instruction entrypoint handler for `finalize`.
 pub fn finalize_handler(ctx: Context<Finalize>) -> Result<()> {
     let Context {
-        accounts:
-            Finalize {
-                document,
-                mint,
-                nft_token_account,
-                token_program,
-                ..
-            },
-        bumps,
+        accounts: Finalize { document, .. },
         ..
     } = ctx;
 
-    document.set_nft_data(mint, nft_token_account, *bumps.get("mint").unwrap());
     document.try_finalize()?;
-
-    mint_to(
-        CpiContext::new_with_signer(
-            token_program.to_account_info(),
-            MintTo {
-                authority: document.to_account_info(),
-                mint: mint.to_account_info(),
-                to: nft_token_account.to_account_info(),
-            },
-            &[&document.signer_seeds()],
-        ),
-        1,
-    )?;
-
-    set_authority(
-        CpiContext::new_with_signer(
-            token_program.to_account_info(),
-            SetAuthority {
-                account_or_mint: mint.to_account_info(),
-                current_authority: document.to_account_info(),
-            },
-            &[&document.signer_seeds()],
-        ),
-        AuthorityType::MintTokens,
-        None,
-    )?;
 
     Ok(())
 }
