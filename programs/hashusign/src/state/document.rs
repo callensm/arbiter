@@ -20,7 +20,7 @@ pub struct Document {
     pub participants: Vec<Pubkey>,
 
     /// Vector of boolean flags to indicate which public key participants have signed.
-    pub timestamps: Vec<u64>,
+    pub signature_timestamps: Vec<u64>,
 
     /// Whether all public key participants have signed the document.
     pub finalization_timestamp: u64,
@@ -48,7 +48,7 @@ impl Document {
 
     /// Checks if all required participants have submitted signatures.
     pub fn has_all_signatures(&self) -> bool {
-        self.timestamps.iter().all(|&t| t > 0)
+        self.signature_timestamps.iter().all(|&t| t > 0)
     }
 
     /// Whether the document has all signatures required and has been
@@ -76,13 +76,13 @@ impl Document {
     /// Check if the argued index has been marked as already signing the document.
     pub fn try_has_signed<'a>(&self, participant: &Signer<'a>) -> Result<bool> {
         let i = self.try_find_participant(&participant.key())?;
-        Ok(*self.timestamps.get(i).unwrap() != 0)
+        Ok(*self.signature_timestamps.get(i).unwrap() != 0)
     }
 
     /// Attempt to mark the argued public key participant as having signed the document.
     pub fn try_sign<'a>(&mut self, participant: &Signer<'a>) -> Result<()> {
         let i = self.try_find_participant(&participant.key())?;
-        self.timestamps[i] = Clock::get()?.unix_timestamp as u64;
+        self.signature_timestamps[i] = Clock::get()?.unix_timestamp as u64;
         Ok(())
     }
 
@@ -113,7 +113,7 @@ impl Serialize for Document {
                 .map(|p| p.to_string())
                 .collect::<Vec<String>>(),
         )?;
-        s.serialize_field("timestamps", &self.timestamps)?;
+        s.serialize_field("signatureTimestamps", &self.signature_timestamps)?;
         s.serialize_field("finalizationTimestamp", &self.finalization_timestamp)?;
         s.end()
     }
@@ -133,7 +133,7 @@ mod tests {
                 title: "Test".into(),
                 created_at: 0,
                 participants: vec![Pubkey::default()],
-                timestamps: vec![0],
+                signature_timestamps: vec![0],
                 finalization_timestamp: 0,
                 bump: [0],
             },
@@ -152,7 +152,7 @@ mod tests {
                 Token::Seq { len: Some(1) },
                 Token::Str("11111111111111111111111111111111"),
                 Token::SeqEnd,
-                Token::Str("timestamps"),
+                Token::Str("signatureTimestamps"),
                 Token::Seq { len: Some(1) },
                 Token::U64(0),
                 Token::SeqEnd,

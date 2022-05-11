@@ -189,9 +189,9 @@ describe('hashusign', async () => {
               participants.map(p => p.publicKey.toBase58())
             )
 
-            assert.lengthOf(docData.account.timestamps, 4)
+            assert.lengthOf(docData.account.signatureTimestamps, 4)
             assert.equal(
-              docData.account.timestamps.reduce(
+              docData.account.signatureTimestamps.reduce(
                 (acc: number, curr: BN) => acc + curr.toNumber(),
                 0
               ),
@@ -268,7 +268,7 @@ describe('hashusign', async () => {
         })
 
         it('their signature timestamp is added to the document account data', () => {
-          assert.notEqual(docData.timestamps[2].toNumber(), 0)
+          assert.notEqual(docData.signatureTimestamps[2].toNumber(), 0)
         })
 
         it('the same participant can not submit subsequent signatures on the same document', () => {

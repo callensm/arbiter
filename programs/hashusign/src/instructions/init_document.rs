@@ -99,7 +99,7 @@ pub fn init_document_handler(
         title,
         created_at: now,
         participants,
-        timestamps: vec![0; num_participants],
+        signature_timestamps: vec![0; num_participants],
         finalization_timestamp: 0,
         bump: [*bumps.get("document").unwrap()],
     };
