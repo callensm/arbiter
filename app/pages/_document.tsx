@@ -1,6 +1,6 @@
 import Document, { Html, Head, Main, NextScript } from 'next/document'
 
-class HashuSignDocument extends Document {
+class ArbiterDocument extends Document {
   render() {
     return (
       <Html>
@@ -20,4 +20,4 @@ class HashuSignDocument extends Document {
   }
 }
 
-export default HashuSignDocument
+export default ArbiterDocument

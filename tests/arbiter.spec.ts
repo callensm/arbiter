@@ -9,14 +9,14 @@ import {
 } from '@project-serum/anchor'
 import { assert, use as chaiUse } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
-import { Hashusign } from '../target/types/hashusign'
+import { Arbiter } from '../target/types/arbiter'
 
 chaiUse(chaiAsPromised)
 
-describe('hashusign', async () => {
+describe('arbiter', async () => {
   setProvider(Provider.env())
 
-  const program = workspace.Hashusign as Program<Hashusign>
+  const program = workspace.Arbiter as Program<Arbiter>
 
   const authority = ((program.provider as Provider).wallet as any).payer as web3.Keypair
   const participants = [...Array(4)].map(() => web3.Keypair.generate())

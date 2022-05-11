@@ -6,7 +6,7 @@ const Header: FunctionComponent = () => {
   return (
     <Layout.Header style={headerStyle}>
       <Typography.Title style={{ margin: 0, flexGrow: 1 }} level={3}>
-        HashuSign
+        Arbiter
       </Typography.Title>
       <Space size="large">
         <ConnectButton />

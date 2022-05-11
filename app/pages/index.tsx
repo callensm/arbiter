@@ -13,7 +13,7 @@ const HomePage: NextPage = () => {
   return (
     <>
       <Head>
-        <title>HashuSign</title>
+        <title>Arbiter</title>
       </Head>
       <Layout>
         <WalletModalProvider>

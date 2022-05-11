@@ -10,10 +10,10 @@ import {
 } from 'react'
 import { useClerk } from './clerk'
 import { useProgram } from './program'
-import type { Hashusign } from '../idl'
+import type { Arbiter } from '../idl'
 import { notifyDocumentNotFoundError, notifyDocumentsFetchError } from '../notifications'
 
-export type Document = IdlAccounts<Hashusign>['document']
+export type Document = IdlAccounts<Arbiter>['document']
 
 export interface DocumentsContextState {
   documents: ProgramAccount<Document>[]

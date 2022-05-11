@@ -2,7 +2,7 @@
   "scripts": {
     "fmt": "prettier --check .",
     "fmt:fix": "prettier --write .",
-    "idl": "cp target/types/hashusign.ts app/lib/idl.ts",
+    "idl": "cp target/types/arbiter.ts app/lib/idl.ts",
     "precommit": "npm run fmt:fix && anchor test && cargo test && cargo clippy -- -Dwarnings",
     "prepare": "husky install"
   },

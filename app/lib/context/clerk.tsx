@@ -9,12 +9,12 @@ import {
   useCallback
 } from 'react'
 import { useProgram } from './program'
-import type { Hashusign } from '../idl'
+import type { Arbiter } from '../idl'
 import { getClerkProgramAddress } from '../util'
 import { notifyClerkFetchError } from '../notifications'
 import { PublicKey } from '@solana/web3.js'
 
-export type Clerk = IdlAccounts<Hashusign>['clerk']
+export type Clerk = IdlAccounts<Arbiter>['clerk']
 
 export interface ClerkContextState {
   data: Clerk | null
