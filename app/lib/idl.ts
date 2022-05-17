@@ -145,6 +145,10 @@ export type Arbiter = {
           type: 'string'
         },
         {
+          name: 'uri'
+          type: 'string'
+        },
+        {
           name: 'participants'
           type: {
             vec: 'publicKey'
@@ -273,6 +277,10 @@ export type Arbiter = {
             type: 'string'
           },
           {
+            name: 'uri'
+            type: 'string'
+          },
+          {
             name: 'createdAt'
             type: 'u64'
           },
@@ -367,26 +375,31 @@ export type Arbiter = {
     },
     {
       code: 6009
+      name: 'EmptyDocumentUri'
+      msg: 'The URI provided for the new document was empty.'
+    },
+    {
+      code: 6010
       name: 'MintAuthorityMisMatch'
       msg: 'The document token mint authority did not match the provided document.'
     },
     {
-      code: 6010
+      code: 6011
       name: 'MintDecimalNotZero'
       msg: 'The provided document token mint has a non-zero decimal.'
     },
     {
-      code: 6011
+      code: 6012
       name: 'ParticipantAlreadySigned'
       msg: 'The participant has already signed the provided document.'
     },
     {
-      code: 6012
+      code: 6013
       name: 'ParticipantsAreNotUnique'
       msg: 'The list of participant public keys contain duplicates.'
     },
     {
-      code: 6013
+      code: 6014
       name: 'ParticipantNotAssociated'
       msg: 'The participant public key is not associated with the document.'
     }
@@ -540,6 +553,10 @@ export const IDL: Arbiter = {
           type: 'string'
         },
         {
+          name: 'uri',
+          type: 'string'
+        },
+        {
           name: 'participants',
           type: {
             vec: 'publicKey'
@@ -668,6 +685,10 @@ export const IDL: Arbiter = {
             type: 'string'
           },
           {
+            name: 'uri',
+            type: 'string'
+          },
+          {
             name: 'createdAt',
             type: 'u64'
           },
@@ -762,26 +783,31 @@ export const IDL: Arbiter = {
     },
     {
       code: 6009,
+      name: 'EmptyDocumentUri',
+      msg: 'The URI provided for the new document was empty.'
+    },
+    {
+      code: 6010,
       name: 'MintAuthorityMisMatch',
       msg: 'The document token mint authority did not match the provided document.'
     },
     {
-      code: 6010,
+      code: 6011,
       name: 'MintDecimalNotZero',
       msg: 'The provided document token mint has a non-zero decimal.'
     },
     {
-      code: 6011,
+      code: 6012,
       name: 'ParticipantAlreadySigned',
       msg: 'The participant has already signed the provided document.'
     },
     {
-      code: 6012,
+      code: 6013,
       name: 'ParticipantsAreNotUnique',
       msg: 'The list of participant public keys contain duplicates.'
     },
     {
-      code: 6013,
+      code: 6014,
       name: 'ParticipantNotAssociated',
       msg: 'The participant public key is not associated with the document.'
     }
