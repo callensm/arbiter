@@ -3,7 +3,7 @@
     "fmt": "prettier --check .",
     "fmt:fix": "prettier --write .",
     "idl": "cp target/types/arbiter.ts app/lib/idl.ts",
-    "precommit": "npm run fmt:fix && anchor test && cargo test && cargo clippy -- -Dwarnings",
+    "precommit": "npm run idl && npm run fmt:fix && cargo test && cargo clippy -- -Dwarnings",
     "prepare": "husky install"
   },
   "dependencies": {

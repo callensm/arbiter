@@ -48,13 +48,14 @@ pub mod arbiter {
         instructions::init_clerk_handler(ctx, limit)
     }
 
-    #[access_control(InitDocument::prevalidate(&ctx, &title, &participants))]
+    #[access_control(InitDocument::prevalidate(&ctx, &title, &uri, &participants))]
     pub fn init_document(
         ctx: Context<InitDocument>,
         title: String,
+        uri: String,
         participants: Vec<Pubkey>,
     ) -> Result<()> {
-        instructions::init_document_handler(ctx, title, participants)
+        instructions::init_document_handler(ctx, title, uri, participants)
     }
 
     #[access_control(StageUpgrade::prevalidate(&ctx))]

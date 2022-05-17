@@ -13,6 +13,9 @@ pub struct Document {
     /// The immutable title of the document (cannot be changed after creation).
     pub title: String,
 
+    /// The content address URI of the document agnostic to storage platform.
+    pub uri: String,
+
     /// The unix timestamp of when the document was initialized.
     pub created_at: u64,
 
@@ -32,8 +35,15 @@ pub struct Document {
 impl Document {
     /// Returns the byte size of the `Document` struct given the number of
     /// participants required to submit signed approval transactions.
-    pub fn space(title_size: usize, part_size: usize) -> usize {
-        8 + 32 * 4 + (4 + title_size) + 8 + (4 + 32 * part_size) + (4 + 8 * part_size) + 8 + 1 + 1
+    pub fn space(title_size: usize, uri_size: usize, part_size: usize) -> usize {
+        8 + 32
+            + (4 + title_size)
+            + (4 + uri_size)
+            + 8
+            + (4 + 32 * part_size)
+            + (4 + 8 * part_size)
+            + 8
+            + 1
     }
 
     /// Convert a full document title string into a usable address seed.
@@ -131,6 +141,7 @@ mod tests {
             &Document {
                 authority: Pubkey::default(),
                 title: "Test".into(),
+                uri: "https://arweave.net/abc1234567890".into(),
                 created_at: 0,
                 participants: vec![Pubkey::default()],
                 signature_timestamps: vec![0],

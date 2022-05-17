@@ -22,6 +22,8 @@ describe('arbiter', async () => {
   const participants = [...Array(4)].map(() => web3.Keypair.generate())
 
   const title = 'My Test Document'
+  const uri = 'https://arweave.net/abc123'
+
   let clerk: web3.PublicKey
   let stagedClerk: web3.PublicKey
   let document: web3.PublicKey
@@ -103,6 +105,7 @@ describe('arbiter', async () => {
             program.methods
               .initDocument(
                 '',
+                uri,
                 participants.map(p => p.publicKey)
               )
               .accounts({
@@ -116,10 +119,29 @@ describe('arbiter', async () => {
           )
         })
 
+        it('the document uri is empty', async () => {
+          assert.isRejected(
+            program.methods
+              .initDocument(
+                title,
+                '',
+                participants.map(p => p.publicKey)
+              )
+              .accounts({
+                authority: authority.publicKey,
+                payer: authority.publicKey,
+                clerk,
+                document
+              })
+              .signers([authority])
+              .simulate()
+          )
+        })
+
         it('the participants public key array is empty', () => {
           assert.isRejected(
             program.methods
-              .initDocument(title, [])
+              .initDocument(title, uri, [])
               .accounts({
                 authority: authority.publicKey,
                 payer: authority.publicKey,
@@ -134,7 +156,7 @@ describe('arbiter', async () => {
         it('there are duplicate participant public keys', () => {
           assert.isRejected(
             program.methods
-              .initDocument(title, [
+              .initDocument(title, uri, [
                 ...participants.map(p => p.publicKey),
                 participants[0].publicKey
               ])
@@ -157,6 +179,7 @@ describe('arbiter', async () => {
           await program.methods
             .initDocument(
               title,
+              uri,
               participants.map(p => p.publicKey)
             )
             .accounts({
@@ -180,6 +203,11 @@ describe('arbiter', async () => {
         describe('with its account data properly set', () => {
           it('public key references', () => {
             assert.isTrue(docData.account.authority.equals(authority.publicKey))
+          })
+
+          it('correct title and uri', () => {
+            assert.strictEqual(docData.account.title, title)
+            assert.strictEqual(docData.account.uri, uri)
           })
 
           it('participants and timestamp defaults', () => {
@@ -219,6 +247,7 @@ describe('arbiter', async () => {
             program.methods
               .initDocument(
                 newTitle,
+                uri,
                 participants.map(p => p.publicKey)
               )
               .accounts({

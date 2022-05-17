@@ -29,6 +29,9 @@ pub enum ErrorCode {
     #[msg("The title provided for the new document was empty.")]
     EmptyDocumentTitle,
 
+    #[msg("The URI provided for the new document was empty.")]
+    EmptyDocumentUri,
+
     #[msg("The document token mint authority did not match the provided document.")]
     MintAuthorityMisMatch,
 

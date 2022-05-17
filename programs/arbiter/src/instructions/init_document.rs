@@ -5,7 +5,7 @@ use crate::seeds;
 use crate::state::{Clerk, Document};
 
 #[derive(Accounts)]
-#[instruction(title: String, participants: Vec<Pubkey>)]
+#[instruction(title: String, uri: String, participants: Vec<Pubkey>)]
 pub struct InitDocument<'info> {
     /// The system account that is signing the transaction and
     /// will be set as the `document` owner.
@@ -39,7 +39,7 @@ pub struct InitDocument<'info> {
             Document::title_seed(&title),
         ],
         bump,
-        space = Document::space(title.len(), participants.len()),
+        space = Document::space(title.len(), uri.len(), participants.len()),
     )]
     pub document: Account<'info, Document>,
 
@@ -49,8 +49,14 @@ pub struct InitDocument<'info> {
 
 impl<'info> InitDocument<'info> {
     /// Instruction prevalidation for `init_document`.
-    pub fn prevalidate(_ctx: &Context<Self>, title: &str, participants: &[Pubkey]) -> Result<()> {
+    pub fn prevalidate(
+        _ctx: &Context<Self>,
+        title: &str,
+        uri: &str,
+        participants: &[Pubkey],
+    ) -> Result<()> {
         require!(!title.is_empty(), ErrorCode::EmptyDocumentTitle);
+        require!(!uri.is_empty(), ErrorCode::EmptyDocumentUri);
 
         require!(
             !participants.is_empty(),
@@ -77,6 +83,7 @@ fn is_unique(v: &[Pubkey]) -> bool {
 pub fn init_document_handler(
     ctx: Context<InitDocument>,
     title: String,
+    uri: String,
     participants: Vec<Pubkey>,
 ) -> Result<()> {
     let Context {
@@ -97,6 +104,7 @@ pub fn init_document_handler(
     **document = Document {
         authority: authority.key(),
         title,
+        uri,
         created_at: now,
         participants,
         signature_timestamps: vec![0; num_participants],
