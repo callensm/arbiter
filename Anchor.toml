@@ -2,7 +2,7 @@
 seeds = false
 
 [programs.localnet]
-arbiter = "6A8qMbuKjxqXM18hzr8EsRbq3yUxTKMvFcmo435kemrd"
+arbiter = "Arbitc5Kwf3EQh1USXjk93KYNXqCUcKgyRHu9HposTLa"
 
 [registry]
 url = "https://anchor.projectserum.com"

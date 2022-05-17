@@ -6,7 +6,7 @@ pub mod state;
 
 use instructions::*;
 
-declare_id!("6A8qMbuKjxqXM18hzr8EsRbq3yUxTKMvFcmo435kemrd");
+declare_id!("Arbitc5Kwf3EQh1USXjk93KYNXqCUcKgyRHu9HposTLa");
 
 /// The static PDA seeds used throughout the program.
 pub mod seeds {
