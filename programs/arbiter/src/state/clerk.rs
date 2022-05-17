@@ -6,6 +6,7 @@ use crate::error::ErrorCode;
 use crate::seeds;
 
 #[account]
+#[derive(Debug)]
 pub struct Clerk {
     /// The wallet public key authority behind the program account.
     pub authority: Pubkey,

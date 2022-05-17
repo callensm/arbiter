@@ -1,0 +1,22 @@
+[package]
+name = "arbiter-cli"
+version = "0.1.0"
+description = "Arbiter command line tool for program interaction"
+repository = "https://github.com/callensm/arbiter"
+edition = "2021"
+
+[[bin]]
+name = "arbiter"
+path = "src/bin/main.rs"
+
+[dependencies]
+anchor-client = "0.24"
+anyhow = "1.0"
+arbiter = { path = "../programs/arbiter", features = ["cli"] }
+clap = { version = "3.1", features = ["derive"] }
+dialoguer = "0.10"
+indicatif = "0.16"
+serde = "1.0"
+serde_json = "1.0"
+shellexpand = "2.1"
+solana-cli-config = "1.9"

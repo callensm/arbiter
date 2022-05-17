@@ -6,6 +6,7 @@ use crate::error::ErrorCode;
 use crate::seeds;
 
 #[account]
+#[derive(Debug)]
 pub struct Document {
     /// The public key of the wallet that created the document.
     pub authority: Pubkey,
