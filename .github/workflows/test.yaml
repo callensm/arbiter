@@ -1,0 +1,59 @@
+name: Test
+
+on:
+  pull_request: {}
+  push:
+    branches: [master]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Nodejs
+        uses: actions/setup-node@v2
+        with:
+          cache: npm
+
+      - name: Prettier Check
+        run: npm ci && npm run fmt
+
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - run: sudo apt-get update && sudo apt-get install -y libudev-dev
+
+      - name: Cache Cargo
+        uses: actions/cache@v3
+        id: cache-cargo-build
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            ./target/
+          key: cargo-${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Format Check
+        run: cargo fmt --all --check
+
+      - name: Clippy Check
+        run: cargo clippy --all-targets -- -Dwarnings
+
+      - name: Tests
+        run: cargo test
