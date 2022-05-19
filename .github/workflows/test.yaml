@@ -37,6 +37,11 @@ jobs:
 
       - run: sudo apt-get update && sudo apt-get install -y libudev-dev
 
+      - run: |
+          mkdir -p ~/.config/solana/cli
+          cp ./.github/resources/solana-config.yaml ~/.config/solana/cli/config.yml
+          echo ${{ secrets.TEST_SOLANA_KEYPAIR }} > ~/.config/solana/id.json
+
       - name: Cache Cargo
         uses: actions/cache@v3
         id: cache-cargo-build
