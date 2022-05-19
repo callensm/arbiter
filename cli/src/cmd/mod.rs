@@ -1,2 +1,2 @@
 pub mod clerk;
-pub mod doc;
+pub mod document;

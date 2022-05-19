@@ -42,9 +42,6 @@ pub struct Finalize<'info> {
         constraint = document.has_all_signatures() @ ErrorCode::DocumentIsMissingSignatures,
     )]
     pub document: Account<'info, Document>,
-
-    /// The global system program.
-    pub system_program: Program<'info, System>,
 }
 
 impl<'info> Finalize<'info> {

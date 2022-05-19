@@ -4,12 +4,10 @@ use anchor_client::solana_sdk::system_program;
 use anyhow::Result;
 use clap::Subcommand;
 
-use crate::{
-    config::Config,
-    macros::assert_not_exists,
-    program::{create_program_client, send_with_approval},
-    terminal::{print_serialized, DisplayOptions},
-};
+use crate::config::Config;
+use crate::macros::assert_not_exists;
+use crate::program::{create_program_client, send_with_approval};
+use crate::terminal::{print_serialized, DisplayOptions};
 
 #[derive(Subcommand)]
 pub enum ClerkCommand {
@@ -17,7 +15,7 @@ pub enum ClerkCommand {
         #[clap(long, default_value_t = 10)]
         limit: u8,
     },
-    Show {
+    Get {
         address: Option<Pubkey>,
         #[clap(long)]
         json: bool,
@@ -31,12 +29,12 @@ pub enum ClerkCommand {
 pub fn entry(cfg: &Config, subcmd: &ClerkCommand) -> Result<()> {
     match subcmd {
         ClerkCommand::Create { limit } => process_create(cfg, *limit),
-        ClerkCommand::Show {
+        ClerkCommand::Get {
             address,
             json,
             owner,
             pretty,
-        } => process_show(
+        } => process_get(
             cfg,
             address,
             owner,
@@ -48,10 +46,11 @@ pub fn entry(cfg: &Config, subcmd: &ClerkCommand) -> Result<()> {
 fn process_create(cfg: &Config, limit: u8) -> Result<()> {
     let (program, signer) = create_program_client(cfg);
 
-    let (clerk_addr, ..) = Pubkey::find_program_address(
+    let clerk_addr = Pubkey::find_program_address(
         &[arbiter::seeds::CLERK, signer.pubkey().as_ref()],
         &program.id(),
-    );
+    )
+    .0;
 
     assert_not_exists!(&program, arbiter::state::Clerk, &clerk_addr);
 
@@ -71,7 +70,7 @@ fn process_create(cfg: &Config, limit: u8) -> Result<()> {
     )
 }
 
-fn process_show(
+fn process_get(
     cfg: &Config,
     address: &Option<Pubkey>,
     owner: &Option<Pubkey>,

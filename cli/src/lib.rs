@@ -26,11 +26,16 @@ enum Command {
         #[clap(subcommand)]
         subcmd: clerk::ClerkCommand,
     },
+    Document {
+        #[clap(subcommand)]
+        subcmd: document::DocumentCommand,
+    },
 }
 
 pub fn run(opts: Opts) -> Result<()> {
     let cfg = Config::new(&opts.cfg)?;
     match opts.cmd {
         Command::Clerk { subcmd } => clerk::entry(&cfg, &subcmd),
+        Command::Document { subcmd } => document::entry(&cfg, &subcmd),
     }
 }
