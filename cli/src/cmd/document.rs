@@ -141,7 +141,7 @@ fn process_get(
     });
 
     print_serialized(
-        program.account::<arbiter::state::Clerk>(clerk_addr)?,
+        program.account::<arbiter::state::Document>(clerk_addr)?,
         &display,
     )
 }
