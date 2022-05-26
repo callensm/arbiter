@@ -5,7 +5,7 @@ use anyhow::Result;
 use clap::Subcommand;
 
 use crate::config::Config;
-use crate::macros::assert_not_exists;
+use crate::macros::{assert_exists, assert_not_exists};
 use crate::program::{create_program_client, send_with_approval};
 use crate::terminal::{print_serialized, DisplayOptions};
 
@@ -24,6 +24,10 @@ pub enum ClerkCommand {
         #[clap(long)]
         pretty: bool,
     },
+    Upgrade {
+        #[clap(long)]
+        amount: u8,
+    },
 }
 
 pub fn entry(cfg: &Config, subcmd: &ClerkCommand) -> Result<()> {
@@ -40,19 +44,20 @@ pub fn entry(cfg: &Config, subcmd: &ClerkCommand) -> Result<()> {
             owner,
             DisplayOptions::from_args(*json, *pretty),
         ),
+        ClerkCommand::Upgrade { amount } => process_upgrade(cfg, *amount),
     }
 }
 
 fn process_create(cfg: &Config, limit: u8) -> Result<()> {
     let (program, signer) = create_program_client(cfg);
 
-    let clerk_addr = Pubkey::find_program_address(
+    let clerk = Pubkey::find_program_address(
         &[arbiter::seeds::CLERK, signer.pubkey().as_ref()],
         &program.id(),
     )
     .0;
 
-    assert_not_exists!(&program, arbiter::state::Clerk, &clerk_addr);
+    assert_not_exists!(&program, arbiter::state::Clerk, &clerk);
 
     send_with_approval(
         cfg,
@@ -61,7 +66,7 @@ fn process_create(cfg: &Config, limit: u8) -> Result<()> {
             .accounts(arbiter::accounts::InitClerk {
                 authority: signer.pubkey(),
                 payer: signer.pubkey(),
-                clerk: clerk_addr,
+                clerk,
                 system_program: system_program::ID,
             })
             .args(arbiter::instruction::InitClerk { limit })
@@ -85,5 +90,32 @@ fn process_get(
     print_serialized(
         program.account::<arbiter::state::Clerk>(clerk_addr)?,
         &display,
+    )
+}
+
+fn process_upgrade(cfg: &Config, amount: u8) -> Result<()> {
+    let (program, signer) = create_program_client(cfg);
+    let clerk = Pubkey::find_program_address(
+        &[arbiter::seeds::CLERK, signer.pubkey().as_ref()],
+        &program.id(),
+    )
+    .0;
+
+    assert_exists!(&program, arbiter::state::Clerk, &clerk);
+
+    send_with_approval(
+        cfg,
+        program
+            .request()
+            .accounts(arbiter::accounts::Upgrade {
+                authority: signer.pubkey(),
+                clerk,
+                system_program: system_program::ID,
+            })
+            .args(arbiter::instruction::Upgrade {
+                increase_amount: amount,
+            })
+            .signer(signer.as_ref()),
+        vec!["arbiter::Upgrade"],
     )
 }
