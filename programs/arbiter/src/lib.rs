@@ -58,13 +58,8 @@ pub mod arbiter {
         instructions::init_document_handler(ctx, title, uri, participants)
     }
 
-    #[access_control(StageUpgrade::prevalidate(&ctx))]
-    pub fn stage_upgrade(ctx: Context<StageUpgrade>) -> Result<()> {
-        instructions::stage_upgrade_handler(ctx)
-    }
-
-    #[access_control(UpgradeLimit::prevalidate(&ctx, increase_amount))]
-    pub fn upgrade_limit(ctx: Context<UpgradeLimit>, increase_amount: u8) -> Result<()> {
-        instructions::upgrade_limit_handler(ctx, increase_amount)
+    #[access_control(Upgrade::prevalidate(&ctx, increase_amount))]
+    pub fn upgrade(ctx: Context<Upgrade>, increase_amount: u8) -> Result<()> {
+        instructions::upgrade(ctx, increase_amount)
     }
 }

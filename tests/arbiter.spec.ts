@@ -25,7 +25,6 @@ describe('arbiter', async () => {
   const uri = 'https://arweave.net/abc123'
 
   let clerk: web3.PublicKey
-  let stagedClerk: web3.PublicKey
   let document: web3.PublicKey
 
   describe('users of the program should be able to', () => {
@@ -372,84 +371,55 @@ describe('arbiter', async () => {
       })
     })
 
-    describe('increase the document storage limit for their clerk by', () => {
-      let oldClerkData: any
-
-      describe('using `stage_upgrade` to prepare their clerk data for migration', () => {
-        before(async () => {
-          oldClerkData = await program.account.clerk.fetch(clerk)
-          ;[stagedClerk] = await web3.PublicKey.findProgramAddress(
-            [Buffer.from('clerk'), Buffer.from('staged'), authority.publicKey.toBytes()],
-            program.programId
+    describe('use the `upgrade` instruction to increase the document storage limit', () => {
+      describe('except when it failed because', () => {
+        it('the increase limit requested was less than 1', () => {
+          assert.isRejected(
+            program.methods
+              .upgrade(0)
+              .accounts({ authority: authority.publicKey, clerk })
+              .signers([authority])
+              .simulate()
           )
-
-          await program.methods
-            .stageUpgrade()
-            .accounts({
-              authority: authority.publicKey,
-              payer: authority.publicKey,
-              receiver: authority.publicKey,
-              oldClerk: clerk,
-              stagedClerk
-            })
-            .signers([authority])
-            .rpc()
-        })
-
-        describe('which will', () => {
-          it('close the original clerk program account', async () => {
-            const c = await program.account.clerk.fetchNullable(clerk)
-            assert.isNull(c)
-          })
-
-          it('create a new staged seeded clerk account with migrated data', async () => {
-            const c = await program.account.clerk.fetchNullable(stagedClerk)
-            assert.isNotNull(c)
-            assert.isTrue(c.authority.equals(oldClerkData.authority))
-            assert.deepEqual(oldClerkData.documents, c.documents)
-            assert.equal(oldClerkData.documents.length, c.documents.length)
-          })
         })
       })
 
-      describe('and then invoking `upgrade_limit` in order to', () => {
-        let newClerkData: any
+      describe('but when the storage upgrade is successful', () => {
+        let oldClerkData: Buffer
+        let newClerkData: Buffer
 
         before(async () => {
+          const info = await program.provider.connection.getAccountInfo(clerk)
+          oldClerkData = info.data
+
           await program.methods
-            .upgradeLimit(2)
+            .upgrade(2)
             .accounts({
               authority: authority.publicKey,
-              payer: authority.publicKey,
-              receiver: authority.publicKey,
-              stagedClerk,
-              newClerk: clerk
+              clerk
             })
             .signers([authority])
             .rpc()
         })
 
-        it('reinitialize their clerk account', async () => {
-          newClerkData = await program.account.clerk.fetch(clerk)
-          assert.isTrue(newClerkData.authority.equals(authority.publicKey))
-          assert.isTrue(newClerkData.authority.equals(oldClerkData.authority))
-          assert.deepEqual(newClerkData.bump, oldClerkData.bump)
+        it('the clerk account data reallocs only for the `amt * 32` for new public keys', async () => {
+          const info = await program.provider.connection.getAccountInfo(clerk)
+          newClerkData = info.data
+          assert.strictEqual(info.data.length - oldClerkData.length, 32 * 2)
         })
 
-        it('copy over their original set of document public keys', () => {
-          assert.deepEqual(
-            oldClerkData.documents,
-            newClerkData.documents.slice(0, oldClerkData.documents.length)
+        it('the clerk contains the correct amount of newly zeroed public keys in documents vector', () => {
+          const c = program.coder.accounts.decode('Clerk', newClerkData)
+          assert.lengthOf(c.documents, 3)
+          assert.strictEqual(
+            c.documents.filter((d: web3.PublicKey) => d.equals(web3.PublicKey.default)).length,
+            2
           )
         })
 
-        it('increase the number of documents their migrated account can hold', () => {
-          assert.notEqual(oldClerkData.documents.length, newClerkData.documents.length)
-          assert.lengthOf(newClerkData.documents, 3)
-        })
-
-        it('increments the number of clerk upgrades for the account', () => {
-          assert.equal(newClerkData.upgrades, oldClerkData.upgrades + 1)
+        it('the upgrade count is incremented to track the number of upgrades', () => {
+          const c = program.coder.accounts.decode('Clerk', newClerkData)
+          assert.strictEqual(c.upgrades, 1)
         })
       })
     })
