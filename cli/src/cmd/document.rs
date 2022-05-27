@@ -9,29 +9,40 @@ use crate::macros::{assert_exists, assert_not_exists};
 use crate::program::{create_program_client, send_with_approval};
 use crate::terminal::{print_serialized, DisplayOptions};
 
+/// The variants for each document account command.
 #[derive(Subcommand)]
 pub enum DocumentCommand {
+    /// Create a new document under the clerk.
     Create {
+        /// The participant pubkeys to add.
         #[clap(short, long, multiple_occurrences = true)]
         participant: Vec<Pubkey>,
+        /// Title of the new document.
         #[clap(long)]
         title: String,
+        /// URI of the document content in storage.
         #[clap(long)]
         uri: String,
     },
+    /// Attempt to finalize a fully signed document.
     Finalize {
+        /// The pubkey of the document.
         address: Pubkey,
     },
+    /// Get the serialized account data for a document.
     Get {
-        address: Option<Pubkey>,
+        /// The pubkey of the document program account.
+        address: Pubkey,
+        /// Display the serialized data as JSON.
         #[clap(long)]
         json: bool,
-        #[clap(long, conflicts_with = "address")]
-        owner: Option<Pubkey>,
+        /// Pretty print the serialized data.
         #[clap(long)]
         pretty: bool,
     },
+    /// Sign a document program account.
     Sign {
+        /// The pubkey of the document account to sign.
         address: Pubkey,
     },
 }
@@ -47,14 +58,8 @@ pub fn entry(cfg: &Config, subcmd: &DocumentCommand) -> Result<()> {
         DocumentCommand::Get {
             address,
             json,
-            owner,
             pretty,
-        } => process_get(
-            cfg,
-            address,
-            owner,
-            DisplayOptions::from_args(*json, *pretty),
-        ),
+        } => process_get(cfg, address, DisplayOptions::from_args(*json, *pretty)),
         DocumentCommand::Sign { address } => process_sign(cfg, address),
     }
 }
@@ -128,20 +133,11 @@ fn process_finalize(cfg: &Config, address: &Pubkey) -> Result<()> {
     )
 }
 
-fn process_get(
-    cfg: &Config,
-    address: &Option<Pubkey>,
-    owner: &Option<Pubkey>,
-    display: DisplayOptions,
-) -> Result<()> {
-    let (program, signer) = create_program_client(cfg);
-    let owner_pk = owner.unwrap_or_else(|| signer.pubkey());
-    let clerk_addr = address.unwrap_or_else(|| {
-        Pubkey::find_program_address(&[arbiter::seeds::CLERK, owner_pk.as_ref()], &program.id()).0
-    });
+fn process_get(cfg: &Config, address: &Pubkey, display: DisplayOptions) -> Result<()> {
+    let (program, _) = create_program_client(cfg);
 
     print_serialized(
-        program.account::<arbiter::state::Document>(clerk_addr)?,
+        program.account::<arbiter::state::Document>(*address)?,
         &display,
     )
 }

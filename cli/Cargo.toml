@@ -1,6 +1,6 @@
 [package]
 name = "arbiter-cli"
-version = "0.1.0"
+version = "0.1.1"
 description = "Arbiter command line tool for program interaction"
 repository = "https://github.com/callensm/arbiter"
 edition = "2021"

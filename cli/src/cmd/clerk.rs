@@ -9,22 +9,32 @@ use crate::macros::{assert_exists, assert_not_exists};
 use crate::program::{create_program_client, send_with_approval};
 use crate::terminal::{print_serialized, DisplayOptions};
 
+/// The variants for each clerk program account command.
 #[derive(Subcommand)]
 pub enum ClerkCommand {
+    /// Create a new clerk program account.
     Create {
+        /// The initial document storage limit for the account.
         #[clap(long, default_value_t = 10)]
         limit: u8,
     },
+    /// Get the serialized account data for a clerk.
     Get {
+        /// The pubkey of the clerk program account.
         address: Option<Pubkey>,
+        /// Display the account data as JSON.
         #[clap(long)]
         json: bool,
+        /// The pubkey of the clerk owner to derive with.
         #[clap(long, conflicts_with = "address")]
         owner: Option<Pubkey>,
+        /// Pretty print the serialized account data.
         #[clap(long)]
         pretty: bool,
     },
+    /// Upgrade the document storage limit for your clerk.
     Upgrade {
+        /// The amount to increase the document storage by.
         #[clap(long)]
         amount: u8,
     },
