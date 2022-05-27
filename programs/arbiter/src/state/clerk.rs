@@ -36,7 +36,7 @@ impl Clerk {
 
     /// Checks if the program account contains the argued `Document`
     /// public key in its vector of documents.
-    pub fn is_holding(&self, doc: &Pubkey) -> bool {
+    pub fn holds(&self, doc: &Pubkey) -> bool {
         self.documents.iter().any(|d| d == doc)
     }
 

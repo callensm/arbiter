@@ -84,6 +84,14 @@ impl Document {
         Ok(())
     }
 
+    /// Attempt to find and return the index of the argued participant public key.
+    pub fn try_find_participant(&self, participant: &Pubkey) -> Result<usize> {
+        self.participants
+            .iter()
+            .position(|p| p == participant)
+            .ok_or_else(|| error!(ErrorCode::ParticipantNotAssociated))
+    }
+
     /// Check if the argued index has been marked as already signing the document.
     pub fn try_has_signed<'a>(&self, participant: &Signer<'a>) -> Result<bool> {
         let i = self.try_find_participant(&participant.key())?;
@@ -95,14 +103,6 @@ impl Document {
         let i = self.try_find_participant(&participant.key())?;
         self.signature_timestamps[i] = Clock::get()?.unix_timestamp as u64;
         Ok(())
-    }
-
-    /// Attempt to find and return the index of the argued participant public key.
-    fn try_find_participant(&self, participant: &Pubkey) -> Result<usize> {
-        self.participants
-            .iter()
-            .position(|p| p == participant)
-            .ok_or_else(|| error!(ErrorCode::ParticipantNotAssociated))
     }
 }
 

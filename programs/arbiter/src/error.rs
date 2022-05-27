@@ -38,6 +38,9 @@ pub enum ErrorCode {
     #[msg("The provided document token mint has a non-zero decimal.")]
     MintDecimalNotZero,
 
+    #[msg("The participant being added to the document is already listed.")]
+    ParticipantAlreadyAssociated,
+
     #[msg("The participant has already signed the provided document.")]
     ParticipantAlreadySigned,
 

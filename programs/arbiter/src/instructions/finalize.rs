@@ -23,7 +23,7 @@ pub struct Finalize<'info> {
         ],
         bump = clerk.bump[0],
         has_one = authority,
-        constraint = clerk.is_holding(&document.key()) @ ErrorCode::ClerkDoesNotHoldDocument,
+        constraint = clerk.holds(&document.key()) @ ErrorCode::ClerkDoesNotHoldDocument,
     )]
     pub clerk: Account<'info, Clerk>,
 

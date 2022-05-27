@@ -119,6 +119,7 @@ fn process_upgrade(cfg: &Config, amount: u8) -> Result<()> {
             .request()
             .accounts(arbiter::accounts::Upgrade {
                 authority: signer.pubkey(),
+                payer: signer.pubkey(),
                 clerk,
                 system_program: system_program::ID,
             })

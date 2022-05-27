@@ -14,7 +14,7 @@ pub struct InitClerk<'info> {
     /// The wallet paying for the initialization of the
     /// new `clerk` program account.
     #[account(mut)]
-    pub payer: SystemAccount<'info>,
+    pub payer: Signer<'info>,
 
     /// The `Clerk` program account that is being initialized
     /// for the `authority` wallet.

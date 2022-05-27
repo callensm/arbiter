@@ -58,6 +58,11 @@ pub mod arbiter {
         instructions::init_document_handler(ctx, title, uri, participants)
     }
 
+    #[access_control(AddParticipant::prevalidate(&ctx))]
+    pub fn add_participant(ctx: Context<AddParticipant>, participant: Pubkey) -> Result<()> {
+        instructions::add_participant_handler(ctx, participant)
+    }
+
     #[access_control(Upgrade::prevalidate(&ctx, increase_amount))]
     pub fn upgrade(ctx: Context<Upgrade>, increase_amount: u8) -> Result<()> {
         instructions::upgrade(ctx, increase_amount)

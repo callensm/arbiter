@@ -20,6 +20,7 @@ describe('arbiter', async () => {
 
   const authority = ((program.provider as Provider).wallet as any).payer as web3.Keypair
   const participants = [...Array(4)].map(() => web3.Keypair.generate())
+  const additionalParticipant = web3.Keypair.generate()
 
   const title = 'My Test Document'
   const uri = 'https://arweave.net/abc123'
@@ -314,7 +315,53 @@ describe('arbiter', async () => {
       })
     })
 
-    describe('the creator can invoke `finalize` to complete a document and mint the NFT', () => {
+    describe('the creator can add a new participant with `add_participant`', () => {
+      describe('unless it fails because', () => {
+        it('the participant is already listed on the document', () => {
+          assert.isRejected(
+            program.methods
+              .addParticipant(participants[0].publicKey)
+              .accounts({
+                authority: authority.publicKey,
+                payer: authority.publicKey,
+                document
+              })
+              .signers([authority])
+              .simulate()
+          )
+        })
+      })
+
+      describe('and when they are successfully added to the document', () => {
+        let newDocument: any
+
+        before(async () => {
+          await program.methods
+            .addParticipant(additionalParticipant.publicKey)
+            .accounts({
+              authority: authority.publicKey,
+              payer: authority.publicKey,
+              document
+            })
+            .signers([authority])
+            .rpc()
+
+          newDocument = await program.account.document.fetch(document)
+        })
+
+        it('their public key is appended to the list of participants', async () => {
+          assert.lengthOf(newDocument.participants, 5)
+          assert.isTrue(newDocument.participants[4].equals(additionalParticipant.publicKey))
+        })
+
+        it('and empty signature timestamp is appended for them', () => {
+          assert.lengthOf(newDocument.signatureTimestamps, 5)
+          assert.isTrue(newDocument.signatureTimestamps[4].eq(new BN(0)))
+        })
+      })
+    })
+
+    describe('the creator can invoke `finalize` to complete a document', () => {
       describe('it will fail when', () => {
         it('not all participants have signature timestamps on the document', () => {
           assert.isRejected(
@@ -333,7 +380,7 @@ describe('arbiter', async () => {
 
         after(async () => {
           await Promise.all(
-            [participants[0], participants[1], participants[3]].map(p =>
+            [participants[0], participants[1], participants[3], additionalParticipant].map(p =>
               program.methods
                 .addSignature()
                 .accounts({

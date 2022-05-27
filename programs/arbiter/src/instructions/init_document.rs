@@ -13,7 +13,7 @@ pub struct InitDocument<'info> {
 
     /// The wallet paying for the initialization of the `document` account.
     #[account(mut)]
-    pub payer: SystemAccount<'info>,
+    pub payer: Signer<'info>,
 
     /// The `Clerk` program account that the `document` will be assigned to.
     #[account(

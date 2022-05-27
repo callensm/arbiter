@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::program::invoke;
 use anchor_lang::solana_program::rent::Rent;
-use anchor_lang::solana_program::system_instruction::transfer;
+use anchor_lang::system_program::{transfer, Transfer};
 
 use crate::error::ErrorCode;
 use crate::seeds;
@@ -12,8 +11,11 @@ use crate::state::Clerk;
 pub struct Upgrade<'info> {
     /// The system account that is signing the transaction
     /// and is the owner of the `new_clerk` and `staged_clerk`.
-    #[account(mut)]
     pub authority: Signer<'info>,
+
+    /// The wallet paying for the account reallocation rent.
+    #[account(mut)]
+    pub payer: Signer<'info>,
 
     /// The original `Clerk` program account that is associated with
     /// the `authority` and is being reinitialized with a larger limit.
@@ -49,29 +51,33 @@ pub struct LimitUpgraded {
 
 /// Instruction entrypoint handler for `upgrade_limit`.
 pub fn upgrade(ctx: Context<Upgrade>, increase_amount: u8) -> Result<()> {
-    let Context {
-        accounts: Upgrade {
-            authority, clerk, ..
-        },
+    let Upgrade {
+        clerk,
+        payer,
+        system_program,
         ..
-    } = ctx;
+    } = ctx.accounts;
 
     let rent = Rent::get()?;
 
     let new_limit = clerk.limit().checked_add(increase_amount as usize).unwrap();
-    let curr_size = clerk.to_account_info().data_len();
     let new_size = Clerk::space(new_limit);
+    let delta_bytes = new_size
+        .checked_sub(clerk.to_account_info().data_len())
+        .unwrap();
 
-    invoke(
-        &transfer(
-            authority.key,
-            &clerk.key(),
-            rent.minimum_balance(new_size.checked_sub(curr_size).unwrap()),
+    transfer(
+        CpiContext::new(
+            system_program.to_account_info(),
+            Transfer {
+                from: payer.to_account_info(),
+                to: clerk.to_account_info(),
+            },
         ),
-        &[authority.to_account_info(), clerk.to_account_info()],
+        rent.minimum_balance(delta_bytes),
     )?;
 
-    clerk.to_account_info().realloc(new_size, true)?;
+    clerk.to_account_info().realloc(new_size, false)?;
     clerk.documents.resize_with(new_limit, Default::default);
     clerk.upgrades = clerk.upgrades.checked_add(1).unwrap();
 
