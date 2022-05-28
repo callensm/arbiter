@@ -415,6 +415,17 @@ describe('arbiter', async () => {
         it('it will have a non-zero finalization timestamp in account data', () => {
           assert.notEqual(docData.finalizationTimestamp.toNumber(), 0)
         })
+
+        it('new participants cannot be added', () => {
+          const newPart = web3.Keypair.generate()
+          assert.isRejected(
+            program.methods
+              .addParticipant(newPart.publicKey)
+              .accounts({ authority: authority.publicKey, payer: authority.publicKey, document })
+              .signers([authority])
+              .simulate()
+          )
+        })
       })
     })
 

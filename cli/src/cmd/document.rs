@@ -1,3 +1,5 @@
+use anchor_client::anchor_lang::ToAccountMetas;
+use anchor_client::solana_sdk::instruction::Instruction;
 use anchor_client::solana_sdk::pubkey::Pubkey;
 use anchor_client::solana_sdk::signer::Signer;
 use anchor_client::solana_sdk::system_program;
@@ -12,6 +14,14 @@ use crate::terminal::{print_serialized, DisplayOptions};
 /// The variants for each document account command.
 #[derive(Subcommand)]
 pub enum DocumentCommand {
+    /// Add new participant(s) to a document.
+    Add {
+        /// The pubkey of the document to update.
+        address: Pubkey,
+        /// The participant pubkeys to append.
+        #[clap(short, long, multiple_occurrences = true)]
+        participant: Vec<Pubkey>,
+    },
     /// Create a new document under the clerk.
     Create {
         /// The participant pubkeys to add.
@@ -49,6 +59,10 @@ pub enum DocumentCommand {
 
 pub fn entry(cfg: &Config, subcmd: &DocumentCommand) -> Result<()> {
     match subcmd {
+        DocumentCommand::Add {
+            address,
+            participant,
+        } => process_add(cfg, address, participant),
         DocumentCommand::Create {
             participant,
             title,
@@ -62,6 +76,53 @@ pub fn entry(cfg: &Config, subcmd: &DocumentCommand) -> Result<()> {
         } => process_get(cfg, address, DisplayOptions::from_args(*json, *pretty)),
         DocumentCommand::Sign { address } => process_sign(cfg, address),
     }
+}
+
+fn process_add(cfg: &Config, address: &Pubkey, participants: &[Pubkey]) -> Result<()> {
+    let (program, signer) = create_program_client(cfg);
+
+    assert_exists!(&program, arbiter::state::Document, address);
+
+    if participants.len() == 1 {
+        return send_with_approval(
+            cfg,
+            program
+                .request()
+                .accounts(arbiter::accounts::AddParticipant {
+                    authority: signer.pubkey(),
+                    payer: signer.pubkey(),
+                    document: *address,
+                    system_program: system_program::ID,
+                })
+                .args(arbiter::instruction::AddParticipant {
+                    participant: participants[0],
+                })
+                .signer(signer.as_ref()),
+            vec!["arbiter::AddParticipant"],
+        );
+    }
+
+    let mut req = program.request();
+
+    for p in participants {
+        req = req.instruction(Instruction::new_with_borsh(
+            program.id(),
+            &arbiter::instruction::AddParticipant { participant: *p },
+            arbiter::accounts::AddParticipant {
+                authority: signer.pubkey(),
+                payer: signer.pubkey(),
+                document: *address,
+                system_program: system_program::ID,
+            }
+            .to_account_metas(None),
+        ));
+    }
+
+    send_with_approval(
+        cfg,
+        req.signer(signer.as_ref()),
+        vec!["arbiter::AddParticipant"; participants.len()],
+    )
 }
 
 fn process_create(cfg: &Config, participants: &[Pubkey], title: &str, uri: &str) -> Result<()> {
