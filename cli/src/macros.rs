@@ -28,7 +28,6 @@
 ///     },
 /// );
 /// ```
-#[allow(unused)]
 macro_rules! assert_exists {
     ($program:expr, $acc_type:ty, $pubkey:expr $(,)?) => {{
         if !crate::program::account_exists($program, $pubkey)? {
@@ -51,7 +50,6 @@ macro_rules! assert_exists {
         }
     }};
 }
-#[allow(unused_imports)]
 pub(crate) use assert_exists;
 
 /// Macro to assert that the argued public key does not exist on chain.
